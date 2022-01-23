@@ -1,5 +1,5 @@
 const snmp = require('net-snmp');
-const oids = ['1.3.6.1.2.1.1.5.0', '1.3.6.1.2.1.1.6.0'];
+const oids = ['1.3.6.1.2.1.4.20.1.1'];
 
 type VarbindsProp = {oid: string; type: number; value: Buffer};
 
@@ -18,22 +18,43 @@ const getOids = ({ip, commity}: {ip: string; commity: string}) => {
   });
 };
 
-getOids({ip: '127.0.0.1', commity: 'public'}).then(res => {
+getOids({ip: '10.1.1.1', commity: 'public'}).then(res => {
   console.log('res', res[0].value.toString());
 });
 
-// var session = snmp.createSession('127.0.0.1', 'public');
-// session.get(oids, function (error, varbinds) {
-//   if (error) {
-//     console.error(error.toString());
-//   } else {
-//     for (var i = 0; i < varbinds.length; i++) {
-//       // for version 1 we can assume all OIDs were successful
-//       console.log(varbinds[i].oid + '|' + varbinds[i].value);
+const getTableOids = ({ip, commity}: {ip: string; commity: string}) => {
+  let session = snmp.createSession(ip, commity);
 
-//       // for version 2c we must check each OID for an error condition
-//       if (snmp.isVarbindError(varbinds[i])) console.error(snmp.varbindError(varbinds[i]));
-//       else console.log(varbinds[i].oid + '|' + varbinds[i].value);
-//     }
-//   }
+  return new Promise((resolve, reject) => {
+    session.table('1.3.6.1.2.1.2.2', 20, function (error, table) {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(table);
+      }
+      session.close();
+    });
+  });
+};
+// getTableOids({ip: '10.1.1.1', commity: 'public'}).then(res => {
+//   console.log('res', res);
 // });
+
+// Default options
+var options = {
+  port: 162,
+  disableAuthorization: false,
+  accessControlModelType: snmp.AccessControlModelType.None,
+  address: '192.168.199.1',
+  transport: 'udp4',
+};
+
+var callback = function (error, notification) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log(JSON.stringify(notification, null, 2));
+  }
+};
+
+const receiver = snmp.createReceiver(options, callback);

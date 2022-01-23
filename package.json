@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch src -e ts --exec ts-node src/index.ts"
+    "dev": "nodemon --watch src -e ts --exec ts-node src/test/index.ts"
   },
   "author": "",
   "license": "ISC",
