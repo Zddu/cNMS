@@ -12,10 +12,7 @@ export const jRun = () => {
   //   snmpGet(device, oids).then(res => {
   //     console.log(res);
   //   });
-  const json = parseMibsFile('src/monitor/mibs/IF-MIB');
-  //   fs.writeFile(
-  //     './src/test/if-mib1.json',
-  //     JSON.stringify(json, null, '\t'),
-  //     'utf-8'
-  //   );
+  const json = parseMibsFile('SNMPv2-MIB');
+  console.log(json);
+  fs.writeFile('./src/test/SNMPv2-MIB.json', JSON.stringify(json, null, '\t'), 'utf-8');
 };
