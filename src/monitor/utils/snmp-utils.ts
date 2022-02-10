@@ -69,3 +69,6 @@ export const parseMibsFile = (mibName: string) => {
   load('src/monitor/mibs');
   return store.getModule(mibName);
 };
+
+
+export const readMibsFile = () => {}

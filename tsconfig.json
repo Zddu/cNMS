@@ -6,7 +6,13 @@
     "outDir": "./dist",
     "removeComments": true,
     "strictNullChecks": true,
+    "moduleResolution": "node",
+    "baseUrl": "./src",
+    "allowSyntheticDefaultImports": true, 
+    "esModuleInterop": true,
   },
   "include": ["./src"],
-  
+  "exclude": [
+    "node_modules"
+  ],
 }
