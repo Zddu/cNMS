@@ -70,5 +70,4 @@ export const parseMibsFile = (mibName: string) => {
   return store.getModule(mibName);
 };
 
-
-export const readMibsFile = () => {}
+export const readMibsFile = () => {};
