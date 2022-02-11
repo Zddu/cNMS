@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import { DeviceType } from '../monitor/types';
-const { readMibFile } = require('../monitor/utils/mib-parser/mib-reader');
+const { readMibFile } = require('../monitor/utils/mib-parser/mib_reader');
 
 const fileNameArr = [
   'SNMPv2-TM',
@@ -144,8 +144,8 @@ export const jRun = async () => {
   // console.log(json);
   // fs.writeFile('./src/test/SNMPv2-MIB.json', JSON.stringify(json, null, '\t'), 'utf-8');
   const path = 'src/monitor/mibs/';
-  fileNameArr.forEach(async f => {
-    const data = await fs.readFile(`${path}/${f}`, 'utf-8');
-    readMibFile(f, data);
-  });
+  // fileNameArr.forEach(async f => {
+  // });
+  const data = await fs.readFile(`${path}/SNMPv2-MIB`, 'utf-8');
+  readMibFile('SNMPv2-MIB', data);
 };

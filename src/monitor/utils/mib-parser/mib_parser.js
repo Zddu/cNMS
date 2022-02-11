@@ -4,6 +4,7 @@ const { OidObject, OidObjectParam } = require('./mib_oid');
 const { Sequence } = require('./mib_list');
 const { Syntax } = require('./mib_syntax');
 const { TextualConvention } = require('./mib_convention');
+console.log('引入', oid_list);
 
 function MibParser(fname, text) {
   this.mib = new Mib(fname);
@@ -137,6 +138,7 @@ MibParser.prototype.parse_moduleIdentity = function () {
   }
   oid_object.mib = this.mib;
   this.mib.oid_object.push(oid_object);
+  console.log('oid_list', oid_list);
   oid_list.push(oid_object);
 };
 

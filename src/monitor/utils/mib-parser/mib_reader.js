@@ -14,7 +14,7 @@ function read_file(filename, contents) {
   const mib = new MibParser(filename, contents);
   console.log(mib);
   mib_list.push(mib);
-  generateOid();
+  generateOid(oid_list);
 }
 
 module.exports = {

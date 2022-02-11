@@ -39,7 +39,7 @@ function getOid(child_oid_object, oid_object) {
   return oid;
 }
 
-function generateOid() {
+function generateOid(oid_list) {
   for (var i in oid_list) {
     if (oid_list.hasOwnProperty(i)) {
       oid_list[i].setOid(getOid(null, oid_list[i]));
