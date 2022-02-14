@@ -2,17 +2,17 @@ import express from 'express';
 import { json, urlencoded } from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
+import { Routes } from './router/crmRoutes';
 
 class App {
   public app: express.Application;
-  //   private router = new Routes();
+  private route: Routes = new Routes();
+
   constructor() {
     this.app = express();
     this.config();
     // 引入路由
-    this.app.get('/', (req, res) => {
-      res.send({ message: 'hello express' });
-    });
+    this.route.routes(this.app);
   }
   private config() {
     //开启 cors
