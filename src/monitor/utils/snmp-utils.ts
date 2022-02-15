@@ -33,6 +33,18 @@ export const snmpGet = (device: DeviceType, oids: string | string[]) => {
   });
 };
 
+export const snmpTable = (device: DeviceType, oid: string, maxRepetitions: number) => {
+  return new Promise<any>((resolve, reject) => {
+    createSnmpSession(device).table(oid, maxRepetitions, (error, table) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(table);
+      }
+    });
+  });
+};
+
 // export const loadMibFile = (path: string) => {
 //   try {
 //     const files = readdir(path);
@@ -42,9 +54,8 @@ export const snmpGet = (device: DeviceType, oids: string | string[]) => {
 //   }
 // };
 
-export const loadMibFile = async () => {
+export const loadMibFile = () => {
   const store = new Mib();
-  console.log('aa');
 
   const path = 'src/monitor/mibs';
   fileNameArr.forEach(filename => {
@@ -56,12 +67,10 @@ export const loadMibFile = async () => {
       } catch (error) {}
     }
   });
-  console.log('bb');
   return store;
 };
 
-export const getMibModule = async (mibName: string) => {
-  const store = await loadMibFile();
-  console.log('dd');
+export const getMibModule = (mibName: string) => {
+  const store = loadMibFile();
   return store.getModule(mibName);
 };

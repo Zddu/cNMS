@@ -32,11 +32,11 @@ class MibParser {
 
   loadFromFile(filename: string) {
     this.parser.Import(filename);
+    console.log('加载' + filename + '中...');
     this.parser.Serialize();
   }
 
   getModule(moduleName: string) {
-    console.log(Object.keys(this.parser.Modules));
     return this.parser.Modules[moduleName];
   }
 }
