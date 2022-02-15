@@ -1,8 +1,8 @@
 import { DeviceType, Session, SnmpOptionsType, VarbindsType } from '../types';
+const fs = require('fs');
 export const snmp = require('net-snmp');
-const mibparser = require('../utils/mib.js');
-import { readdir, stat, readFile, writeFile } from 'fs/promises';
 import { fileNameArr, temps } from '../constants';
+import Mib from './MibParser';
 
 export const defaultOptions: SnmpOptionsType = {
   port: 161,
@@ -42,33 +42,26 @@ export const snmpGet = (device: DeviceType, oids: string | string[]) => {
 //   }
 // };
 
-const loadMibFile = (fileName: string) => {
-  mibparser().Import(fileName);
-  mibparser().Serialize();
+export const loadMibFile = async () => {
+  const store = new Mib();
+  console.log('aa');
+
+  const path = 'src/monitor/mibs';
+  fileNameArr.forEach(filename => {
+    const filePath = path + `/${filename}`;
+    const stat = fs.lstatSync(filePath);
+    if (stat.isFile) {
+      try {
+        store.loadFromFile(filePath);
+      } catch (error) {}
+    }
+  });
+  console.log('bb');
+  return store;
 };
 
-export const parseMibsFile = (mibName: string) => {
-  const store = snmp.createModuleStore();
-  const load = async (path: string) => {
-    fileNameArr.forEach(filename => {
-      const filePath = path + `/${filename}`;
-      stat(filePath)
-        .then(fstat => {
-          if (fstat.isFile()) {
-            try {
-              // loadMibFile(filePath);
-              store.loadFromFile(filePath);
-            } catch (error) {}
-          }
-        })
-        .catch(err => {
-          console.log(err);
-        });
-    });
-  };
-  load('src/monitor/mibs');
+export const getMibModule = async (mibName: string) => {
+  const store = await loadMibFile();
+  console.log('dd');
   return store.getModule(mibName);
 };
-
-
-export const readMibsFile = () => {}

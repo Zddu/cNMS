@@ -469,7 +469,7 @@ var MIB = function (dir) {
                                                         break;
                                                     case 'DESCRIPTION':
                                                         if ( ! Object[ObjectName][key] ) {
-                                                            Object[ObjectName][key] = val;
+                                                            Object[ObjectName][key] = val.replace(/\n\s+/g, " ");
                                                         }
                                                         if ( ! Object[ObjectName]['REVISIONS-DESCRIPTIONS'] ) {
                                                             Object[ObjectName]['REVISIONS-DESCRIPTIONS'] = [];

@@ -570,6 +570,14 @@
 		"ObjectName": "snmpGroup",
 		"ModuleName": "SNMPv2-MIB",
 		"MACRO": "OBJECT-GROUP",
+		"OBJECTS": [
+			" snmpInPkts",
+			"snmpInBadVersions",
+			"snmpInASNParseErrs",
+			"snmpSilentDrops",
+			"snmpProxyDrops",
+			"snmpEnableAuthenTraps "
+		],
 		"STATUS": "current",
 		"DESCRIPTION": "A collection of objects providing basic instrumentation\n            and control of an SNMP entity.",
 		"OBJECT IDENTIFIER": "snmpMIBGroups 8",
@@ -580,6 +588,10 @@
 		"ObjectName": "snmpCommunityGroup",
 		"ModuleName": "SNMPv2-MIB",
 		"MACRO": "OBJECT-GROUP",
+		"OBJECTS": [
+			" snmpInBadCommunityNames",
+			"snmpInBadCommunityUses "
+		],
 		"STATUS": "current",
 		"DESCRIPTION": "A collection of objects providing basic instrumentation\n            of a SNMP entity which supports community-based\n            authentication.",
 		"OBJECT IDENTIFIER": "snmpMIBGroups 9",
@@ -590,6 +602,9 @@
 		"ObjectName": "snmpSetGroup",
 		"ModuleName": "SNMPv2-MIB",
 		"MACRO": "OBJECT-GROUP",
+		"OBJECTS": [
+			" snmpSetSerialNo "
+		],
 		"STATUS": "current",
 		"DESCRIPTION": "A collection of objects which allow several cooperating\n            command generator applications to coordinate their\n            use of the set operation.",
 		"OBJECT IDENTIFIER": "snmpMIBGroups 5",
@@ -600,6 +615,19 @@
 		"ObjectName": "systemGroup",
 		"ModuleName": "SNMPv2-MIB",
 		"MACRO": "OBJECT-GROUP",
+		"OBJECTS": [
+			" sysDescr",
+			"sysObjectID",
+			"sysUpTime",
+			"sysContact",
+			"sysName",
+			"sysLocation",
+			"sysServices",
+			"sysORLastChange",
+			"sysORID",
+			"sysORUpTime",
+			"sysORDescr "
+		],
 		"STATUS": "current",
 		"DESCRIPTION": "The system group defines objects which are common to all\n            managed systems.",
 		"OBJECT IDENTIFIER": "snmpMIBGroups 6",
@@ -610,6 +638,10 @@
 		"ObjectName": "snmpBasicNotificationsGroup",
 		"ModuleName": "SNMPv2-MIB",
 		"MACRO": "NOTIFICATION-GROUP",
+		"NOTIFICATIONS": [
+			" coldStart",
+			"authenticationFailure "
+		],
 		"STATUS": "current",
 		"DESCRIPTION": "The basic notifications implemented by an SNMP entity\n        supporting command responder applications.",
 		"OBJECT IDENTIFIER": "snmpMIBGroups 7",
@@ -620,6 +652,9 @@
 		"ObjectName": "snmpWarmStartNotificationGroup",
 		"ModuleName": "SNMPv2-MIB",
 		"MACRO": "NOTIFICATION-GROUP",
+		"NOTIFICATIONS": [
+			" warmStart "
+		],
 		"STATUS": "current",
 		"DESCRIPTION": "An additional notification for an SNMP entity supporting\n     command responder applications, if it is able to reinitialize\n     itself such that its configuration is unaltered.",
 		"OBJECT IDENTIFIER": "snmpMIBGroups 11",
@@ -630,6 +665,10 @@
 		"ObjectName": "snmpNotificationGroup",
 		"ModuleName": "SNMPv2-MIB",
 		"MACRO": "OBJECT-GROUP",
+		"OBJECTS": [
+			" snmpTrapOID",
+			"snmpTrapEnterprise "
+		],
 		"STATUS": "current",
 		"DESCRIPTION": "These objects are required for entities\n            which support notification originator applications.",
 		"OBJECT IDENTIFIER": "snmpMIBGroups 12",
@@ -904,6 +943,30 @@
 		"ObjectName": "snmpObsoleteGroup",
 		"ModuleName": "SNMPv2-MIB",
 		"MACRO": "OBJECT-GROUP",
+		"OBJECTS": [
+			" snmpOutPkts",
+			"snmpInTooBigs",
+			"snmpInNoSuchNames",
+			"snmpInBadValues",
+			"snmpInReadOnlys",
+			"snmpInGenErrs",
+			"snmpInTotalReqVars",
+			"snmpInTotalSetVars",
+			"snmpInGetRequests",
+			"snmpInGetNexts",
+			"snmpInSetRequests",
+			"snmpInGetResponses",
+			"snmpInTraps",
+			"snmpOutTooBigs",
+			"snmpOutNoSuchNames",
+			"snmpOutBadValues",
+			"snmpOutGenErrs",
+			"snmpOutGetRequests",
+			"snmpOutGetNexts",
+			"snmpOutSetRequests",
+			"snmpOutGetResponses",
+			"snmpOutTraps"
+		],
 		"STATUS": "obsolete",
 		"DESCRIPTION": "A collection of objects from RFC 1213 made obsolete\n            by this MIB module.",
 		"OBJECT IDENTIFIER": "snmpMIBGroups 10",
