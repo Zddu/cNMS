@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "monitor": "nodemon --watch src -e ts --exec ts-node src/test/index.ts",
-    "dev": "nodemon --watch src -e ts --exec ts-node src/api/server.ts",
+    "monitor": "nodemon --watch src/monitor -e ts --exec ts-node src/test/index.ts",
+    "dev": "nodemon --watch src/api -e ts --exec ts-node src/api/server.ts",
     "start": "nodemon ./dist/server.js",
     "prod": "npm run build && npm run start"
   },

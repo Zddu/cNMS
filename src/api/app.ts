@@ -2,12 +2,11 @@ import express from 'express';
 import { json, urlencoded } from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
-import { Routes } from './router/crmRoutes';
 import userRouter from './router/user.routes';
+import mibRouter from './router/mib.routes';
 
 class App {
   public app: express.Application;
-  private route: Routes = new Routes();
 
   constructor() {
     this.app = express();
@@ -29,6 +28,7 @@ class App {
 
   private routes() {
     this.app.use('/user', userRouter);
+    this.app.use('/mib', mibRouter);
   }
 }
 export default new App().app;

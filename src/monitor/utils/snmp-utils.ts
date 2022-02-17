@@ -1,8 +1,8 @@
 import { DeviceType, Session, SnmpOptionsType, VarbindsType } from '../types';
 const fs = require('fs');
 export const snmp = require('net-snmp');
-import { fileNameArr, temps } from '../constants';
-import Mib from './MibParser';
+import { fileNameArr } from '../constants';
+import mib from './MibParser';
 
 export const defaultOptions: SnmpOptionsType = {
   port: 161,
@@ -45,32 +45,11 @@ export const snmpTable = (device: DeviceType, oid: string, maxRepetitions: numbe
   });
 };
 
-// export const loadMibFile = (path: string) => {
-//   try {
-//     const files = readdir(path);
-//     return files;
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
-
-export const loadMibFile = () => {
-  const store = new Mib();
-
-  const path = 'src/monitor/mibs';
-  fileNameArr.forEach(filename => {
-    const filePath = path + `/${filename}`;
-    const stat = fs.lstatSync(filePath);
-    if (stat.isFile) {
-      try {
-        store.loadFromFile(filePath);
-      } catch (error) {}
-    }
-  });
-  return store;
-};
 
 export const getMibModule = (mibName: string) => {
-  const store = loadMibFile();
-  return store.getModule(mibName);
+  return mib.getModule(mibName);
+};
+
+export const getMibModules = () => {
+  return mib.getModules();
 };
