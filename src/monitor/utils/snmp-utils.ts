@@ -1,7 +1,6 @@
+import { connect } from '../../database';
 import { DeviceType, Session, SnmpOptionsType, VarbindsType } from '../types';
-const fs = require('fs');
 export const snmp = require('net-snmp');
-import { fileNameArr } from '../constants';
 import mib from './MibParser';
 
 export const defaultOptions: SnmpOptionsType = {
@@ -45,6 +44,10 @@ export const snmpTable = (device: DeviceType, oid: string, maxRepetitions: numbe
   });
 };
 
+export const oid2ObjName = async (oid: string) => {
+  const conn = await connect();
+  return await conn.query('select * from mibs where oid = ?', [oid])[0];
+};
 
 export const getMibModule = (mibName: string) => {
   return mib.getModule(mibName);
