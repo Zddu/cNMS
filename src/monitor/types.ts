@@ -47,6 +47,7 @@ export type SnmpOptionsType = {
 };
 
 export interface DeviceType extends SnmpOptionsType {
+  deviceId?: string;
   /**
    * 设备IP地址
    */
@@ -58,9 +59,25 @@ export interface DeviceType extends SnmpOptionsType {
   community: string;
 
   /**
-   * 设备名称
+   * 设备端口
    */
+  port: number;
+
+  /**
+   * 设备别名
+   */
+  aliasName?: string;
+  ssh_enabled?: number;
+  snmpver?: string;
+  hostname?: string;
   sysName?: string;
+  sysDescr?: string;
+  sysContact?: string;
+  hardware?: string;
+  os?: string;
+  uptime?: string;
+  last_polled?: Date;
+  type?: string;
 }
 
 export type VarbindsType = { oid: string; type: number; value: Buffer };

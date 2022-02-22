@@ -1,6 +1,7 @@
 import { connect } from '../../database';
 import { DeviceType, Session, SnmpOptionsType, VarbindsType } from '../types';
-export const snmp = require('net-snmp');
+const snmp = require('net-snmp');
+const { exec } = require('child_process');
 import mib from './MibParser';
 
 export const defaultOptions: SnmpOptionsType = {
@@ -55,4 +56,11 @@ export const getMibModule = (mibName: string) => {
 
 export const getMibModules = () => {
   return mib.getModules();
+};
+
+export const snmpGetByName = (oidName: string) => {
+  const cmdStr = 'snmpget -v 2c -c public localhost SNMPv2-MIB::sysUpTime.0';
+  exec(cmdStr, (error, data) => {
+    console.log(data);
+  });
 };
