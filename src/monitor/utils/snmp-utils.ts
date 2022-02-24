@@ -47,7 +47,7 @@ export const snmpTable = (device: DeviceType, oid: string, maxRepetitions: numbe
 
 export const oid2ObjName = async (oid: string) => {
   const conn = await connect();
-  return await conn.query('select * from mibs where oid = ?', [oid])[0];
+  return (await conn.query('select * from mibs where oid = ?', [oid]))[0];
 };
 
 export const getMibModule = (mibName: string) => {
@@ -64,3 +64,26 @@ export const snmpGetByName = (oidName: string) => {
     console.log(data);
   });
 };
+
+export const createMib = async (mibName: string) => {
+  const conn = await connect();
+  const json = mib.getModule(mibName);
+  if (json) {
+    Object.keys(json).map(async k => {
+      if (k !== 'IMPORTS' && json[k].OID) {
+        const mib = {
+          oid: json[k].OID,
+          name: k,
+          module_name: json[k].ModuleName,
+          description: json[k].DESCRIPTION ? json[k].DESCRIPTION : '',
+        };
+        try {
+          console.log(mib);
+          await conn.query('insert into mibs set ?', [mib]);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    });
+  }
+}
