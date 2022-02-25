@@ -96,10 +96,9 @@ export interface Session {
   /**
    * get() 方法获取一个或多个OID的值。
    */
-  get: (
-    oids: string | string[],
-    callback: (error: Error, varbinds: VarbindsType[]) => void
-  ) => void;
+  get: (oids: string[], callback: (error: Error, varbinds: VarbindsType[]) => void) => void;
+
+  getNext: (oids: string[], callback: (error: Error, varbinds: VarbindsType[]) => void) => void;
 
   /**
    * table() 方法获取MIB树中以指定的OID为基础的、按词法排列在指定OID之后的所有OID的值。

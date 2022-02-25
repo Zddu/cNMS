@@ -6,7 +6,7 @@ import mib from './MibParser';
 
 export const defaultOptions: SnmpOptionsType = {
   port: 161,
-  retries: 1,
+  retries: 2,
   timeout: 2000,
   backoff: 1.0,
   transport: 'udp4',
@@ -21,9 +21,21 @@ export const createSnmpSession = (device: DeviceType): Session => {
   return snmp.createSession(ip, community, defaultOptions) as Session;
 };
 
-export const snmpGet = (device: DeviceType, oids: string | string[]) => {
+export const snmpGet = (device: DeviceType, oids: string[]) => {
   return new Promise<VarbindsType[]>((resolve, reject) => {
     createSnmpSession(device).get(oids, (error, varbinds) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(varbinds);
+      }
+    });
+  });
+};
+
+export const snmpNext = (device: DeviceType, oids: string[]) => {
+  return new Promise<VarbindsType[]>((resolve, reject) => {
+    createSnmpSession(device).getNext(oids, (error, varbinds) => {
       if (error) {
         reject(error);
       } else {
@@ -86,4 +98,4 @@ export const createMib = async (mibName: string) => {
       }
     });
   }
-}
+};

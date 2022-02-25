@@ -16,3 +16,16 @@ export const pad2 = (number: number) => {
 export function uuid() {
   return randomUUID().replace(/-/g, '');
 }
+
+export function timesInterval(times: number, ms: number, cb) {
+  let init = 0;
+  cb();
+  const timer = setInterval(() => {
+    init++;
+    cb();
+    console.log('init', init);
+    if (init === times - 1) {
+      clearInterval(timer);
+    }
+  }, ms);
+}
