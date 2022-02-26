@@ -29,3 +29,22 @@ export function timesInterval(times: number, ms: number, cb) {
     }
   }, ms);
 }
+
+export function objBuffer2String(obj: object) {
+  if (isObj(obj)) {
+    Object.keys(obj).forEach(k => {
+      if (isObj(obj[k])) {
+        Object.keys(obj[k]).forEach(v => {
+          if (Buffer.isBuffer(obj[k][v])) {
+            obj[k][v] = obj[k][v].toString();
+          }
+        });
+      }
+    });
+  }
+  return obj;
+}
+
+export function isObj(obj: object) {
+  return Object.prototype.toString.call(obj) === '[object Object]';
+}

@@ -29,13 +29,13 @@ export const addHost = async (device: DeviceType) => {
       '1.3.6.1.2.1.1.5.0', // sysName
     ]);
     host = {
+      ...device,
       hostname: desc[3].value.toString(),
       device_id: uuid(),
       sysDescr: desc[0].value.toString(),
       sysContact: desc[2].value.toString(),
       sysName: desc[3].value.toString(),
       uptime: timeticksTohour(Number(desc[1].value.toString())),
-      ...device,
     };
   } catch (error) {
     host = {

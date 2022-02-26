@@ -1,15 +1,18 @@
-import { DeviceType, VarbindsType } from '../../../monitor/types';
-import { snmpGet, snmpNext, snmpTable } from '../../../monitor/utils/snmp-utils';
+import { DeviceType } from '../../../monitor/types';
 import { connect } from '../../../database';
 import { getCPU } from './cpu';
 
 export default (async function linuxInfo() {
   const conn = await connect();
-  const device: DeviceType = (await conn.query('select * from cool_devices'))[0][0];
+  const devices = (
+    await conn.query('select * from cool_devices where type = ?', ['Linux'])
+  )[0] as DeviceType[];
   // todo 获取硬件信息 Entity-MIB
+  devices.forEach(device => {
+    // 获取CPU信息
+    getCPU(device);
+  });
 
-  // 获取CPU信息
-  getCPU(device);
   // todo 获取内存数据
 
   // todo 获取disk数据
