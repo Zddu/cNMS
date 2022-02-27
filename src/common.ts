@@ -48,3 +48,7 @@ export function objBuffer2String(obj: object) {
 export function isObj(obj: object) {
   return Object.prototype.toString.call(obj) === '[object Object]';
 }
+
+export function isNumber(val: any) {
+  return typeof val === 'number' && !isNaN(val);
+}

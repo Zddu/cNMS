@@ -36,6 +36,7 @@ export const addHost = async (device: DeviceType) => {
       sysContact: desc[2].value.toString(),
       sysName: desc[3].value.toString(),
       uptime: timeticksTohour(Number(desc[1].value.toString())),
+      type: desc[0].value.toString().includes('Linux') ? 'Linux' : null,
     };
   } catch (error) {
     host = {

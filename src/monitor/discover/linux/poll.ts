@@ -1,6 +1,10 @@
 const cron = require('node-cron');
+import poll from './index';
 
-cron.schedule('*/5 * * * *', () => {
-  // 每5分钟运行一次
-  console.log('running a task every two minutes');
-});
+export function pollLinux() {
+  cron.schedule('*/1 * * * *', async () => {
+    // 每5分钟运行一次
+    console.log('开始轮询Linux数据');
+    await poll();
+  });
+}
