@@ -6,8 +6,8 @@ import mib from './MibParser';
 
 export const defaultOptions: SnmpOptionsType = {
   port: 161,
-  retries: 2,
-  timeout: 2000,
+  retries: 3,
+  timeout: 3000,
   backoff: 1.0,
   transport: 'udp4',
   trapPort: 162,
