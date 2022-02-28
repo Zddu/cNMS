@@ -42,11 +42,23 @@ export function objBuffer2String(obj: object) {
       }
     });
   }
+  if (isArray(obj)) {
+    const arr = obj as any[];
+    arr.forEach(v => {
+      if (Buffer.isBuffer(v.value)) {
+        v.value = v.value.toString();
+      }
+    });
+  }
   return obj;
 }
 
 export function isObj(obj: object) {
   return Object.prototype.toString.call(obj) === '[object Object]';
+}
+
+export function isArray(arr: object) {
+  return Object.prototype.toString.call(arr) === '[object Array]';
 }
 
 export function isNumber(val: any) {
@@ -75,4 +87,15 @@ export function fomatFloat(value: number, n: number) {
     s += '0';
   }
   return Number(s);
+}
+
+export function strSplice(str: string, count: number, splitChar: string) {
+  let arr: string[] = [];
+  for (let i = 0, len = str.length / count; i < len; i++) {
+    let subStr = str.substring(0, count);
+    arr.push(subStr);
+    str = str.replace(subStr, '');
+  }
+
+  return arr.join(splitChar);
 }

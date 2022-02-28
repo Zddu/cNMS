@@ -108,4 +108,11 @@ export interface Session {
     maxRepetitions?: number,
     callback?: (error: Error, table: any) => void
   ) => void;
+
+  tableColumns: (
+    oid: string,
+    columns: number[],
+    maxRepetitions?: number,
+    callback?: (error: Error, table: any) => void
+  ) => void;
 }

@@ -16,9 +16,13 @@ export const defaultOptions: SnmpOptionsType = {
   idBitsSize: 32,
 };
 
-export const createSnmpSession = (device: DeviceType): Session => {
+export const createSnmpSession = (device: DeviceType, snmpOptions?: SnmpOptionsType): Session => {
   const { ip, community } = device;
-  return snmp.createSession(ip, community, defaultOptions) as Session;
+  const options = {
+    ...defaultOptions,
+    ...snmpOptions,
+  };
+  return snmp.createSession(ip, community, options) as Session;
 };
 
 export const snmpGet = (device: DeviceType, oids: string[]) => {
@@ -45,15 +49,42 @@ export const snmpNext = (device: DeviceType, oids: string[]) => {
   });
 };
 
-export const snmpTable = (device: DeviceType, oid: string, maxRepetitions: number) => {
+export const snmpTable = (
+  device: DeviceType,
+  oid: string,
+  maxRepetitions?: number,
+  snmpConfig?: SnmpOptionsType
+) => {
   return new Promise<any>((resolve, reject) => {
-    createSnmpSession(device).table(oid, maxRepetitions, (error, table) => {
+    createSnmpSession(device, snmpConfig).table(oid, maxRepetitions, (error, table) => {
       if (error) {
         reject(error);
       } else {
         resolve(table);
       }
     });
+  });
+};
+export const snmpTableColumns = (
+  device: DeviceType,
+  oid: string,
+  columns: number[],
+  maxRepetitions?: number,
+  snmpConfig?: SnmpOptionsType
+) => {
+  return new Promise<any>((resolve, reject) => {
+    createSnmpSession(device, snmpConfig).tableColumns(
+      oid,
+      columns,
+      maxRepetitions,
+      (error, table) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(table);
+        }
+      }
+    );
   });
 };
 
