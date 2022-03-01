@@ -2,9 +2,9 @@ import { createPool, Pool } from 'mysql2/promise';
 
 export async function connect(): Promise<Pool> {
   const connection = await createPool({
-    host: 'ip',
+    host: '47.94.238.68',
     user: 'root',
-    password: '密码',
+    password: 'Huawei@123',
     database: 'cool_network_sys',
     connectionLimit: 100,
   });
