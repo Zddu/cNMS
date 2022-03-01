@@ -14,12 +14,8 @@ export default async function getDisk(device: DeviceType) {
       Object.keys(storageTable).forEach(k => {
         if (isObj(storageTable[k])) {
           if (String(storageTable[k]['3']).includes('/')) {
-            const size = bytesToReadable(
-              Number(storageTable[k]['4']) * Number(storageTable[k]['5'])
-            );
-            const used = bytesToReadable(
-              Number(storageTable[k]['4']) * Number(storageTable[k]['6'])
-            );
+            const size = bytesToReadable(Number(storageTable[k]['4']) * Number(storageTable[k]['5']));
+            const used = bytesToReadable(Number(storageTable[k]['4']) * Number(storageTable[k]['6']));
             const diskModel: CoolDiskProps = {
               device_id: device.device_id,
               disk_path: storageTable[k]['3'],
@@ -36,26 +32,18 @@ export default async function getDisk(device: DeviceType) {
       const conn = await connect();
 
       diskTable.forEach(async item => {
-        const isExits = (
-          await conn.query(
-            'select disk_path from cool_disk where disk_path = ? and device_id = ?',
-            [item.disk_path, item.device_id]
-          )
-        )[0][0];
+        const isExits = (await conn.query('select disk_path from cool_disk where disk_path = ? and device_id = ?', [item.disk_path, item.device_id]))[0][0];
 
         if (isExits) {
           console.log(`${device.hostname} disk update`);
-          await conn.query(
-            'update cool_disk set disk_path = ?, disk_size = ?, disk_used = ?, last_polled = ? where disk_path = ? and device_id = ?',
-            [
-              item.disk_path,
-              item.disk_size,
-              item.disk_used,
-              item.last_polled,
-              item.disk_path,
-              item.device_id,
-            ]
-          );
+          await conn.query('update cool_disk set disk_path = ?, disk_size = ?, disk_used = ?, last_polled = ? where disk_path = ? and device_id = ?', [
+            item.disk_path,
+            item.disk_size,
+            item.disk_used,
+            item.last_polled,
+            item.disk_path,
+            item.device_id,
+          ]);
         } else {
           // console.log(`${device.hostname} disk insert`);
           await conn.query('insert into cool_disk set ?', [item]);

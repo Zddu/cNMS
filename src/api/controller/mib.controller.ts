@@ -1,12 +1,11 @@
 import { connect } from '../../database';
 import { Request, Response } from 'express';
+import { getMibModule, getMibModules } from '../../monitor/utils/snmp-utils';
 
 export async function getMib(req: Request, res: Response) {
   try {
     const { mibName } = req.params;
-    const conn = await connect();
-    const mibs = await conn.query('select * from mibs where module_name = ?', [mibName]);
-    res.json(mibs[0]);
+    res.json(getMibModule(mibName));
   } catch (error) {
     res.json({
       message: error,
@@ -16,9 +15,7 @@ export async function getMib(req: Request, res: Response) {
 
 export async function getMibs(req: Request, res: Response) {
   try {
-    const conn = await connect();
-    const mibs = await conn.query('select * from mibs');
-    res.json(mibs[0]);
+    getMibModules();
   } catch (error) {
     res.json({
       message: error,

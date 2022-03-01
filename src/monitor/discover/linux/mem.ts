@@ -23,22 +23,9 @@ export default async function getMem(device: DeviceType) {
       })
       .reduce((p, v) => p + Number(v), 0);
     if (cBS > Number(hr_memory[0].value)) {
-      memUsage =
-        ((Number(hr_memory[0].value) -
-          Number(hr_memory[1].value) -
-          Number(hr_memory[3].value) -
-          Number(hr_memory[4].value) +
-          Number(hr_memory[2].value)) *
-          100) /
-        Number(hr_memory[0].value);
+      memUsage = ((Number(hr_memory[0].value) - Number(hr_memory[1].value) - Number(hr_memory[3].value) - Number(hr_memory[4].value) + Number(hr_memory[2].value)) * 100) / Number(hr_memory[0].value);
     } else {
-      memUsage =
-        ((Number(hr_memory[0].value) -
-          Number(hr_memory[1].value) -
-          Number(hr_memory[3].value) -
-          Number(hr_memory[4].value)) *
-          100) /
-        Number(hr_memory[0].value);
+      memUsage = ((Number(hr_memory[0].value) - Number(hr_memory[1].value) - Number(hr_memory[3].value) - Number(hr_memory[4].value)) * 100) / Number(hr_memory[0].value);
     }
     if (isNumber(memUsage)) {
       const memModel = {
@@ -46,7 +33,6 @@ export default async function getMem(device: DeviceType) {
         mem_usage: formatFloat(memUsage, 2),
         last_polled: new Date(),
       };
-      // console.log(`${device.hostname} mem insert`);
       const conn = await connect();
       await conn.query('insert into cool_mem_rate set ?', [memModel]);
     }

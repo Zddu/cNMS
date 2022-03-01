@@ -10,7 +10,7 @@ module.exports = {
   // jsx 属性使用双引号
   jsxSingleQuote: false,
   // 行宽
-  printWidth: 100,
+  printWidth: 200,
   // 换行方式
   proseWrap: 'preserve',
   // 分号

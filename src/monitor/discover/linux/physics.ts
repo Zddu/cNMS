@@ -1,5 +1,5 @@
 import { DeviceType } from '../../types';
-import { bytesToReadable, formatFloat, isNumber, isObj, objBuffer2String } from '../../../common';
+import { bytesToReadable, isNumber, isObj, objBuffer2String } from '../../../common';
 import { snmpNext, snmpTable } from '../../utils/snmp-utils';
 import { connect } from '../../../database';
 import { getDiskTable } from './disk';
@@ -41,6 +41,7 @@ export async function getPhysics(device: DeviceType) {
         }
       }
     });
+
     physicsModel.inter_model = interModel;
     console.log(`${device.hostname} physicsModel`, physicsModel);
     const conn = await connect();

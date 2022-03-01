@@ -69,11 +69,23 @@ export function bytesToReadable(bytes: number, n = 2) {
   const GB = bytes / (1024 * 1024 * 1024);
 
   if (GB > 1) {
-    return formatFloat(GB, n) + 'GB';
+    return formatFloat(GB, n) + ' GB';
   } else {
     const MB = bytes / (1024 * 1024);
-    return formatFloat(MB, n) + 'MB';
+    return formatFloat(MB, n) + ' MB';
   }
+}
+
+export function bitsToReadable(bits: number, n = 2) {
+  const Mbits = bits / (1024 * 1024);
+  const Kbits = bits / 1024;
+  if (Mbits > 0.1) {
+    return formatFloat(Mbits, n) + ' Mb/s';
+  }
+  if (Kbits > 0.1) {
+    return formatFloat(Kbits, n) + ' Kb/s';
+  }
+  return formatFloat(bits, n) + ' b/s';
 }
 
 export function formatFloat(value: number, n: number) {
@@ -86,7 +98,7 @@ export function formatFloat(value: number, n: number) {
   for (var i = s.length - s.indexOf('.'); i <= n; i++) {
     s += '0';
   }
-  return s;
+  return Number(s);
 }
 
 export function strSplice(str: string, count: number, splitChar: string) {
