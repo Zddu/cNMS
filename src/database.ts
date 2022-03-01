@@ -4,7 +4,7 @@ export async function connect(): Promise<Pool> {
   const connection = await createPool({
     host: '47.94.238.68',
     user: 'root',
-    password: '@network123Com',
+    password: '',
     database: 'cool_network_sys',
     connectionLimit: 100,
   });
