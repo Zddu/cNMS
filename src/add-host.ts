@@ -21,7 +21,7 @@ export const addHost = async (device: DeviceType) => {
   try {
     // todo ping 主机是否连通
 
-    // 不存在获取sysDescr，判断主机类型
+    // 不存在，获取sysDescr，判断主机类型
     desc = await snmpGet(device, [
       '1.3.6.1.2.1.1.1.0', // sysDescr
       '1.3.6.1.2.1.1.3.0', // sysUptime
@@ -31,12 +31,11 @@ export const addHost = async (device: DeviceType) => {
     host = {
       ...device,
       hostname: desc[3].value.toString(),
-      device_id: uuid(),
       sysDescr: desc[0].value.toString(),
       sysContact: desc[2].value.toString(),
       sysName: desc[3].value.toString(),
       uptime: timeticksTohour(Number(desc[1].value.toString())),
-      type: desc[0].value.toString().includes('Linux') ? 'Linux' : null,
+      type: desc[0].value.toString().includes('Linux') ? 'Linux' : null, // todo 新增设备类型
     };
   } catch (error) {
     host = {

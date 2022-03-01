@@ -69,14 +69,14 @@ export function bytesToReadable(bytes: number, n = 2) {
   const GB = bytes / (1024 * 1024 * 1024);
 
   if (GB > 1) {
-    return fomatFloat(GB, 2);
+    return formatFloat(GB, n) + 'GB';
   } else {
     const MB = bytes / (1024 * 1024);
-    return fomatFloat(MB, n);
+    return formatFloat(MB, n) + 'MB';
   }
 }
 
-export function fomatFloat(value: number, n: number) {
+export function formatFloat(value: number, n: number) {
   const f = Math.round(value * Math.pow(10, n)) / Math.pow(10, n);
   let s = f.toString();
   const rs = s.indexOf('.');
@@ -86,7 +86,7 @@ export function fomatFloat(value: number, n: number) {
   for (var i = s.length - s.indexOf('.'); i <= n; i++) {
     s += '0';
   }
-  return Number(s);
+  return s;
 }
 
 export function strSplice(str: string, count: number, splitChar: string) {

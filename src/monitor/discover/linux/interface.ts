@@ -25,30 +25,34 @@ export default async function getInterface(device: DeviceType) {
 
     if (isObj(interTable)) {
       Object.keys(interTable).forEach(k => {
-        const physModel = {
-          device_id: device.device_id,
-          physics_if_name: interTable[k]['2'],
-          physics_if_type: INTER_TYPES[interTable[k]['3']],
-          physics_if_mac: interTable[k]['6'] === '' ? null : interTable[k]['6'],
-          physics_if_admin_status: interTable[k]['7'] === '' ? null : interTable[k]['7'],
-          physics_if_ip_address: (
-            Object.values(ip_table).find((v: any) => v['2'] === interTable[k]['1']) as any
-          )['1'],
-          physics_if_mask: (
-            Object.values(ip_table).find((v: any) => v['2'] === interTable[k]['1']) as any
-          )['3'],
-        };
-        physicsInterfaces.push(physModel);
+        if (Object.values(ip_table).find((v: any) => v['2'] === interTable[k]['1'])) {
+          const physModel = {
+            device_id: device.device_id,
+            physics_if_name: interTable[k]['2'],
+            physics_if_type: INTER_TYPES[interTable[k]['3']],
+            physics_if_mac: interTable[k]['6'] === '' ? null : interTable[k]['6'],
+            physics_if_admin_status: interTable[k]['7'] === '' ? null : interTable[k]['7'],
+            physics_if_ip_address: (
+              Object.values(ip_table).find((v: any) => v['2'] === interTable[k]['1']) as any
+            )['1'],
+            physics_if_ip_mask: (
+              Object.values(ip_table).find((v: any) => v['2'] === interTable[k]['1']) as any
+            )['3'],
+            last_polled: new Date(),
+          };
+          physicsInterfaces.push(physModel);
+        }
       });
     }
-    if (physicsInterfaces.length > 0) {
-      const conn = await connect();
-      console.log('inter_physics insert');
-      await conn.query('delete from cool_physics_inter where device_id = ? ', [device.device_id]);
-      physicsInterfaces.forEach(async item => {
-        await conn.query('insert into cool_physics_inter set ?', [item]);
-      });
-    }
+    console.log(`${device.hostname} 接口信息`, physicsInterfaces);
+    // if (physicsInterfaces.length > 0) {
+    //   const conn = await connect();
+    //   console.log('inter_physics insert');
+    //   await conn.query('delete from cool_physics_inter where device_id = ? ', [device.device_id]);
+    //   physicsInterfaces.forEach(async item => {
+    //     await conn.query('insert into cool_physics_inter set ?', [item]);
+    //   });
+    // }
   } catch (error) {
     console.log(error);
   }

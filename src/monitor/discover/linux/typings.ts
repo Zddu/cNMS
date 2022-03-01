@@ -7,8 +7,8 @@ export interface CoolCpuRateProps {
 export interface CoolDiskProps {
   device_id: string;
   disk_path: any;
-  disk_size: number;
-  disk_used: number;
+  disk_size: string;
+  disk_used: string;
   last_polled: Date;
 }
 

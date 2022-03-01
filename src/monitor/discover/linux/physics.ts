@@ -1,5 +1,5 @@
 import { DeviceType } from '../../types';
-import { bytesToReadable, isNumber, isObj, objBuffer2String } from '../../../common';
+import { bytesToReadable, formatFloat, isNumber, isObj, objBuffer2String } from '../../../common';
 import { snmpNext, snmpTable } from '../../utils/snmp-utils';
 import { connect } from '../../../database';
 import { getDiskTable } from './disk';
@@ -42,18 +42,11 @@ export async function getPhysics(device: DeviceType) {
       }
     });
     physicsModel.inter_model = interModel;
+    console.log(`${device.hostname} physicsModel`, physicsModel);
     const conn = await connect();
-    const deviceId = (
-      await conn.query('select device_id from cool_physics where device_id = ?', [device.device_id])
-    )[0][0];
-    if (deviceId.device_id) {
-      console.log('physics update');
-      await conn.query('update cool_physics set ?', [physicsModel]);
-    } else {
-      console.log('physics insert');
-      await conn.query('insert into cool_physics set ?', [physicsModel]);
-    }
+    await conn.query('delete from cool_physics where device_id = ?', [device.device_id]);
+    await conn.query('insert into cool_physics set ?', [physicsModel]);
   } catch (error) {
-    console.log('get physics error');
+    console.log(`${device.hostname} get physics error`, error);
   }
 }

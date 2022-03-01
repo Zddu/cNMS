@@ -1,7 +1,7 @@
 import { DeviceType } from './../../types';
 import { snmpNext } from '../../../monitor/utils/snmp-utils';
 import { connect } from '../../../database';
-import { isNumber } from '../../../common';
+import { formatFloat, isNumber } from '../../../common';
 
 const memTotalReal = [
   '1.3.6.1.4.1.2021.4.5', // memTotalReal
@@ -43,14 +43,14 @@ export default async function getMem(device: DeviceType) {
     if (isNumber(memUsage)) {
       const memModel = {
         device_id: device.device_id,
-        mem_usage: memUsage,
+        mem_usage: formatFloat(memUsage, 2),
         last_polled: new Date(),
       };
-      console.log('mem insert');
+      // console.log(`${device.hostname} mem insert`);
       const conn = await connect();
       await conn.query('insert into cool_mem_rate set ?', [memModel]);
     }
   } catch (error) {
-    console.log('get mem error');
+    console.log(`${device.hostname} get mem error`);
   }
 }

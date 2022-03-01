@@ -43,8 +43,8 @@ export default async function getDisk(device: DeviceType) {
           )
         )[0][0];
 
-        if (isExits.disk_path) {
-          console.log('disk update');
+        if (isExits) {
+          console.log(`${device.hostname} disk update`);
           await conn.query(
             'update cool_disk set disk_path = ?, disk_size = ?, disk_used = ?, last_polled = ? where disk_path = ? and device_id = ?',
             [
@@ -57,7 +57,7 @@ export default async function getDisk(device: DeviceType) {
             ]
           );
         } else {
-          console.log('disk insert');
+          // console.log(`${device.hostname} disk insert`);
           await conn.query('insert into cool_disk set ?', [item]);
         }
       });
