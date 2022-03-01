@@ -12,3 +12,20 @@
 - ``` npm install -g typescript ts-node ```
 2. 安装项目依赖
 - ``` npm install ```
+3. 创建数据库文件
+- 在src目录下创建database.ts文件
+```
+import { createPool, Pool } from 'mysql2/promise';
+
+export async function connect(): Promise<Pool> {
+  const connection = await createPool({
+    host: 'ip',
+    user: 'root',
+    password: '密码',
+    database: 'cool_network_sys',
+    connectionLimit: 100,
+  });
+  return connection;
+}
+
+```
