@@ -103,16 +103,12 @@ export interface Session {
   /**
    * table() 方法获取MIB树中以指定的OID为基础的、按词法排列在指定OID之后的所有OID的值。
    */
-  table: (
-    oid: string,
-    maxRepetitions?: number,
-    callback?: (error: Error, table: any) => void
-  ) => void;
+  table: (oid: string, maxRepetitions?: number, callback?: (error: Error, table: any) => void) => void;
 
-  tableColumns: (
-    oid: string,
-    columns: number[],
-    maxRepetitions?: number,
-    callback?: (error: Error, table: any) => void
-  ) => void;
+  tableColumns: (oid: string, columns: number[], maxRepetitions?: number, callback?: (error: Error, table: any) => void) => void;
+
+  /**
+   * walk()方法获取MIB树中指定的OID之后所有OID的词法值。
+   */
+  walk: (oid: string, maxRepetitions?: number, feedCallback?: (varbinds: VarbindsType) => void, doneCallback?: (error: Error) => void) => void;
 }

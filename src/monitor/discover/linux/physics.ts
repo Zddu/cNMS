@@ -8,7 +8,7 @@ const hrDeviceTable = '1.3.6.1.2.1.25.3.2'; // hrDeviceTable
 const memTotalReal = [
   '1.3.6.1.4.1.2021.4.5', // memTotalReal
 ];
-
+const ifNumber = ['1.3.6.1.2.1.2.1'];
 export async function getPhysics(device: DeviceType) {
   const physicsModel: any = {
     device_id: device.device_id,
@@ -20,6 +20,8 @@ export async function getPhysics(device: DeviceType) {
   try {
     const hr_device_table = await snmpTable(device, hrDeviceTable, 100);
     const hr_memory = await snmpNext(device, memTotalReal);
+    const if_number = await snmpNext(device, ifNumber);
+    console.log('if_number', if_number);
     const disk_total_size = await getDiskTable(device);
     const deviceTable = objBuffer2String(hr_device_table);
     if (isNumber(Number(hr_memory[0].value))) {
@@ -29,6 +31,9 @@ export async function getPhysics(device: DeviceType) {
     if (disk_total_size) {
       physicsModel.disk_total_size = disk_total_size;
     }
+    if (isObj(if_number[0])) {
+      physicsModel.inter_number = if_number[0].value;
+    }
 
     Object.keys(deviceTable).forEach(k => {
       if (isObj(deviceTable[k])) {
@@ -37,7 +42,6 @@ export async function getPhysics(device: DeviceType) {
           physicsModel.cpu_model = deviceTable[k]['3'];
         } else if (String(deviceTable[k]['3']).includes('interface')) {
           interModel += String(deviceTable[k]['3']).replace(/\s/g, '').split('interface')[1] + '，';
-          physicsModel.inter_number++;
         }
       }
     });
