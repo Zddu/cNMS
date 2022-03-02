@@ -1,6 +1,6 @@
 ## 进展
 
-初始化仓库，开发中.
+- 2022-3-2 基本完成linux服务器数据检测
 
 ## 功能介绍
 
@@ -8,13 +8,21 @@
 - 流量监控
 
 ## 运行说明
-1. 全局安装ts ts-node
+
+1.全局安装ts ts-node
+
 - ``` npm install -g typescript ts-node ```
-2. 安装项目依赖
+
+2.安装项目依赖
+
 - ``` npm install ```
-3. 创建数据库文件
+
+3.创建数据库文件
+
 - 在src目录下创建database.ts文件
-```
+
+```javascript
+
 import { createPool, Pool } from 'mysql2/promise';
 
 export async function connect(): Promise<Pool> {
