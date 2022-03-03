@@ -9,9 +9,7 @@ import getNetworkFlow from './network-flow';
 
 export default async function linuxInfo() {
   const conn = await connect();
-  const devices = (
-    await conn.query('select * from cool_devices where type = ?', ['Linux'])
-  )[0] as DeviceType[];
+  const devices = (await conn.query('select * from cool_devices where os = ?', ['Linux']))[0] as DeviceType[];
   devices.forEach(device => {
     // 获取CPU信息
     getCPU(device);
