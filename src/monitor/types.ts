@@ -47,7 +47,7 @@ export type SnmpOptionsType = {
 };
 
 export interface DeviceType extends SnmpOptionsType {
-  device_id: string;
+  device_id?: string;
   /**
    * 设备IP地址
    */
