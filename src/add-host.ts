@@ -6,7 +6,17 @@ import { snmpNext } from './monitor/utils/snmp-utils';
 import { timeticksTohour, uuid } from './common';
 import defaultConfig from './default.config';
 
-export const addHost = async (device: DeviceType) => {
+const deviceBaseTable = [
+  '1.3.6.1.2.1.1.1', // sysDescr
+  '1.3.6.1.2.1.1.3', // sysUptime
+  '1.3.6.1.2.1.1.4', // sysContact
+  '1.3.6.1.2.1.1.5', // sysName
+  '1.3.6.1.2.1.4.1', // ipForwarding 是否具有转发功能
+  '1.3.6.1.2.1.25.1.6', //  hostResourcesMibModule 用于判断是否为主机
+];
+const dot1dTpFdbEntryItem = ['1.3.6.1.2.1.17.4.3.1.1'];
+
+export const addHost = async (device: DeviceType, deviceConfig?: string) => {
   let isExist;
   try {
     const conn = await connect();
@@ -20,19 +30,10 @@ export const addHost = async (device: DeviceType) => {
   let desc: VarbindsType[] = [];
   let host: DeviceType;
   try {
-    // todo ping 主机是否连通
-
     // 不存在，获取sysDescr，判断主机类型
-    desc = await snmpNext(device, [
-      '1.3.6.1.2.1.1.1', // sysDescr
-      '1.3.6.1.2.1.1.3', // sysUptime
-      '1.3.6.1.2.1.1.4', // sysContact
-      '1.3.6.1.2.1.1.5', // sysName
-      '1.3.6.1.2.1.4.1', // ipForwarding 是否具有转发功能
-      '1.3.6.1.2.1.25.1.6', //  hostResourcesMibModule 用于判断是否为主机
-    ]);
+    desc = await snmpNext(device, deviceBaseTable);
     // dot1dTpFdbEntry mac地址转发表
-    const dot1dTpFdbEntry = await snmpNext(device, ['1.3.6.1.2.1.17.4.3.1.1']);
+    const dot1dTpFdbEntry = await snmpNext(device, dot1dTpFdbEntryItem);
 
     let type: string = 'other';
     if (desc[5].oid.includes('1.3.6.1.2.1.25')) {
@@ -60,11 +61,23 @@ export const addHost = async (device: DeviceType) => {
       ...device,
     };
   }
+  let device_config = deviceConfig;
+  if (!deviceConfig) {
+    device_config = JSON.stringify(defaultConfig);
+    console.log(device_config);
+  }
+
+  const config = {
+    device_id: host.device_id,
+    device_config,
+    last_polled: new Date(),
+  };
 
   try {
     console.log(`${device.hostname}`, host);
     const conn = await connect();
     conn.query('insert into cool_devices set ?', [host]);
+    conn.query('insert into cool_device_config set ?', [config]);
   } catch (error) {
     console.log(error);
   }
