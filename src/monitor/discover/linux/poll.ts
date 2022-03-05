@@ -1,3 +1,4 @@
+import { Pool } from 'mysql2/promise';
 import { DeviceType } from './../../types';
 const cron = require('node-cron');
 import { connect } from '../../../database';
@@ -30,16 +31,15 @@ export async function pollLinux() {
       }
       console.log('claer scheduleQuene');
       console.log('restart poll data');
-      deviceConfigs.forEach(d => pollData(d));
+      deviceConfigs.forEach(d => pollData(d, conn));
     }
   });
 
-  deviceConfigs.forEach(d => pollData(d));
+  deviceConfigs.forEach(d => pollData(d, conn));
 }
 
-async function pollData(device: DeviceType) {
+async function pollData(device: DeviceType, conn: Pool) {
   try {
-    const conn = await connect();
     const deviceConfig = (await conn.query(queryDeviceConfigSQL, [device.device_id]))[0] as ConfigProps[];
     const config: typeof defaultConfig = JSON.parse(deviceConfig[0].device_config);
     if (config.os_list.includes(device.os || '')) {
