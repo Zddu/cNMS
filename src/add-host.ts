@@ -53,7 +53,7 @@ export const addHost = async (device: DeviceType, deviceConfig?: string) => {
       sysContact: desc[2].value.toString(),
       sysName: desc[3].value.toString(),
       uptime: timeticksTohour(Number(desc[1].value.toString())),
-      os: defaultConfig.supplier_name_list.find(v => desc[0].value.toString().includes(v)), // todo 新增设备类型
+      os: defaultConfig.os_list.find(v => desc[0].value.toString().includes(v)), // todo 新增设备类型
       type: type,
     };
   } catch (error) {

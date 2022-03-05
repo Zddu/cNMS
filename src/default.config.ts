@@ -32,7 +32,7 @@ export default {
       poll_cron: '*/1 * * * *', // 1分钟
     },
   },
-  supplier_name_list: ['Linux', 'Windows', 'Ruijie'],
+  os_list: ['Linux', 'Windows', 'Ruijie'],
   ssh: {
     username: null,
     password: null,

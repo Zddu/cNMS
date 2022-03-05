@@ -17,7 +17,7 @@ export default async function getDisk(device: DeviceType) {
             const size = bytesToReadable(Number(storageTable[k]['4']) * Number(storageTable[k]['5']));
             const used = bytesToReadable(Number(storageTable[k]['4']) * Number(storageTable[k]['6']));
             const diskModel: CoolDiskProps = {
-              device_id: device.device_id,
+              device_id: device.device_id as string,
               disk_path: storageTable[k]['3'],
               disk_size: size,
               disk_used: used,
