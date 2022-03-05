@@ -5,19 +5,23 @@ import defaultConfig from '../../../default.config';
 import { functionMap } from './functionMap';
 
 interface ConfigProps {
+  id: number;
+  device_id: string;
   device_config: string;
 }
 const scheduleQuene: any[] = [];
-const queryDevicesSQL = 'SELECT d.*, c.device_config FROM cool_devices AS d LEFT JOIN cool_device_config AS c ON d.device_id = c.device_id';
+const queryDevicesSQL = 'SELECT * FROM cool_devices';
+const queryDeviceConfigSQL = 'SELECT * FROM cool_device_config where device_id = ?';
 const resetQueryCorn = '10 * * * * *'; // todo 系统配置中提取
 
 export async function pollLinux() {
   scheduleQuene.forEach(s => s.destroy());
   const conn = await connect();
   const query = await conn.query(queryDevicesSQL);
-  let deviceConfigs = query[0] as (DeviceType & ConfigProps)[];
+  let deviceConfigs = query[0] as DeviceType[];
+
   cron.schedule(resetQueryCorn, async () => {
-    const devices = (await conn.query(queryDevicesSQL))[0] as (DeviceType & ConfigProps)[];
+    const devices = (await conn.query(queryDevicesSQL))[0] as DeviceType[];
     if (devices.length !== deviceConfigs.length) {
       deviceConfigs = devices;
       while (scheduleQuene.length > 0) {
@@ -33,9 +37,11 @@ export async function pollLinux() {
   deviceConfigs.forEach(d => pollData(d));
 }
 
-function pollData(device: DeviceType & ConfigProps) {
+async function pollData(device: DeviceType) {
   try {
-    const config: typeof defaultConfig = JSON.parse(device.device_config);
+    const conn = await connect();
+    const deviceConfig = (await conn.query(queryDeviceConfigSQL, [device.device_id]))[0] as ConfigProps[];
+    const config: typeof defaultConfig = JSON.parse(deviceConfig[0].device_config);
     if (config.os_list.includes(device.os || '')) {
       Object.keys(config.poll).forEach(k => {
         if (config.poll[k].enabled) {
