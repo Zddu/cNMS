@@ -21,7 +21,7 @@ export default {
     },
     disk: {
       enabled: true,
-      poll_cron: '*/5 * * * *', // 5分钟
+      poll_cron: '* * * 15 * *', // 每月15日
     },
     interface: {
       enabled: true,
@@ -30,6 +30,10 @@ export default {
     flow: {
       enabled: true,
       poll_cron: '*/1 * * * *', // 1分钟
+    },
+    physics: {
+      enabled: false,
+      poll_corn: '* * 0 * * 0', // 每周日 0时
     },
   },
   os_list: ['Linux', 'Windows', 'Ruijie'],
