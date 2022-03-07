@@ -1,4 +1,3 @@
-import { Pool } from 'mysql2/promise';
 import { DeviceType } from './../../types';
 const cron = require('node-cron');
 import { connect } from '../../../database';
