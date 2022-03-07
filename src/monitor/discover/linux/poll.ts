@@ -22,7 +22,6 @@ export async function pollLinux() {
     if (devices.length !== deviceConfigs.length) {
       deviceConfigs = devices;
       scheduleQueue.forEach(task => {
-        console.log('task', task);
         if (Object.values(task)[0]) {
           Object.values(task)[0].stop();
         }
