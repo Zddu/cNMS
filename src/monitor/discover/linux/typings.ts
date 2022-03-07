@@ -13,7 +13,7 @@ export interface CoolDiskProps {
 }
 
 export interface ConfigProps {
-  id: number;
+  id?: number;
   device_id: string;
   device_config: string;
 }

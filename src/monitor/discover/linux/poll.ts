@@ -6,7 +6,7 @@ import { functionMap } from './functionMap';
 import { ConfigProps } from './typings';
 
 let scheduleQueue: { [key: string]: any }[] = [];
-const queryDevicesSQL = 'SELECT d.*, c.device_config FROM cool_devices AS d LEFT JOIN cool_device_config AS c ON d.device_id = c.device_id where d.os = Linux';
+const queryDevicesSQL = 'SELECT d.*, c.device_config FROM cool_devices AS d LEFT JOIN cool_device_config AS c ON d.device_id = c.device_id and d.os = "Linux"';
 const resetQueryCorn = '10 * * * * *'; // todo 系统配置中提取
 
 export async function pollLinux() {
@@ -21,6 +21,12 @@ export async function pollLinux() {
     const devices = (await conn.query(queryDevicesSQL))[0] as (DeviceType & ConfigProps)[];
     if (devices.length !== deviceConfigs.length) {
       deviceConfigs = devices;
+      scheduleQueue.forEach(task => {
+        console.log('task', task);
+        if (Object.values(task)[0]) {
+          Object.values(task)[0].stop();
+        }
+      });
       scheduleQueue = [];
       console.log('clear scheduleQueue restart poll data');
       deviceConfigs.forEach(d => pollData(d));
@@ -40,7 +46,7 @@ function pollData(device: DeviceType & ConfigProps) {
             console.log(`开始轮询${device.os}-${device.hostname}-${k}的数据-轮询周期${config.poll.poll_item[k].poll_cron}`);
             functionMap[k](device);
           });
-          scheduleQueue.push({ [device.device_id]: cronTask });
+          scheduleQueue.push({ [device.device_id + k]: cronTask });
         }
       });
     }
@@ -50,11 +56,16 @@ function pollData(device: DeviceType & ConfigProps) {
 }
 
 export function modifyConfigResetPoll(deviceConfig: DeviceType & ConfigProps) {
-  scheduleQueue.forEach(task => {
-    if (Object.keys(task)[0] === deviceConfig.device_id) {
-      Object.values(task)[0].stop();
-    }
-  });
+  scheduleQueue.splice(
+    scheduleQueue.findIndex(task => {
+      if (Object.keys(task)[0] === deviceConfig.device_id) {
+        Object.values(task)[0].stop();
+        return true;
+      }
+      return false;
+    }),
+    1
+  );
 
   pollData(deviceConfig);
 }

@@ -1,9 +1,11 @@
+const md5 = require('md5');
 import GlobalError from './gloableError';
 import ErrorCode from './consts';
 import { connect } from './database';
-import { DeviceType, VarbindsType } from './monitor/types';
+import { DeviceType } from './monitor/types';
 import { snmpNext } from './monitor/utils/snmp-utils';
-import { objBuffer2String, timeticksTohour, uuid } from './common';
+import { objBuffer2String, timeticksTohour } from './common';
+import systemConfig from './system.config';
 import defaultConfig from './default.config';
 
 const deviceBaseTable = [
@@ -48,15 +50,16 @@ export const addHost = async (device: DeviceType, deviceConfig?: string) => {
     }
     host = {
       ...device,
-      device_id: uuid(),
+      device_id: md5(strDesc[3].value + device.ip),
       hostname: strDesc[3].value,
       sysDescr: strDesc[0].value,
       sysContact: strDesc[2].value,
       sysName: strDesc[3].value,
       uptime: timeticksTohour(Number(strDesc[1].value)),
-      os: defaultConfig.os_list.find(v => strDesc[0].value.includes(v)), // todo 新增设备类型
+      os: systemConfig.os_list.find(v => strDesc[0].value.includes(v)), // todo 新增设备类型
       type: type,
     };
+    console.log('host', host);
   } catch (error) {
     host = {
       ...device,
@@ -75,10 +78,17 @@ export const addHost = async (device: DeviceType, deviceConfig?: string) => {
   };
 
   try {
-    console.log(`${device.hostname}`, host);
+    console.log(`${host.hostname}`, host);
     const conn = await connect();
+    const devices = (await conn.query('select device_id from cool_device_config where device_id = ?', [host.device_id]))[0] as DeviceType[];
+
+    if (devices.length > 0) {
+      conn.query('update cool_device_config set device_config = ?, last_polled  = ? where device_id = ?', [config.device_config, config.last_polled, config.device_id]);
+    } else {
+      conn.query('insert into cool_device_config set ?', [config]);
+    }
+
     conn.query('insert into cool_devices set ?', [host]);
-    conn.query('insert into cool_device_config set ?', [config]);
   } catch (error) {
     console.log(error);
   }
