@@ -6,13 +6,13 @@ import defaultConfig from '../../../default.config';
 import { functionMap } from './functionMap';
 import { ConfigProps } from './typings';
 
-const scheduleQuene: any[] = [];
+const scheduleQueue: any[] = [];
 const queryDevicesSQL = 'SELECT * FROM cool_devices where os = Linux';
 const queryDeviceConfigSQL = 'SELECT * FROM cool_device_config where device_id = ?';
 const resetQueryCorn = '10 * * * * *'; // todo 系统配置中提取
 
 export async function pollLinux() {
-  scheduleQuene.forEach(s => s.destroy());
+  scheduleQueue.forEach(s => s.destroy());
   const conn = await connect();
   const query = await conn.query(queryDevicesSQL);
   let deviceConfigs = query[0] as DeviceType[];
@@ -21,11 +21,11 @@ export async function pollLinux() {
     const devices = (await conn.query(queryDevicesSQL))[0] as DeviceType[];
     if (devices.length !== deviceConfigs.length) {
       deviceConfigs = devices;
-      while (scheduleQuene.length > 0) {
-        const task = scheduleQuene.pop();
+      while (scheduleQueue.length > 0) {
+        const task = scheduleQueue.pop();
         task && task.stop();
       }
-      console.log('clear scheduleQuene restart poll data');
+      console.log('clear scheduleQueue restart poll data');
       deviceConfigs.forEach(d => pollData(d, conn));
     }
   });
@@ -45,7 +45,7 @@ async function pollData(device: DeviceType, conn: Pool) {
               console.log(`开始轮询${device.os}-${device.hostname}-${k}的数据-轮询周期${config.poll.poll_item[k].poll_cron}`);
               functionMap[k](device);
             });
-            scheduleQuene.push(cronTask);
+            scheduleQueue.push(cronTask);
           }
         });
       }
