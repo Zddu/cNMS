@@ -39,7 +39,6 @@ export default {
       },
     },
   },
-  os_list: ['Linux', 'Windows', 'Ruijie'],
   ssh: {
     username: null,
     password: null,
