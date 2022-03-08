@@ -4,6 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import userRouter from './router/user.routes';
 import mibRouter from './router/mib.routes';
+import deviceRouter from './router/device.routes';
 
 class App {
   public app: express.Application;
@@ -29,6 +30,7 @@ class App {
   private routes() {
     this.app.use('/user', userRouter);
     this.app.use('/mib', mibRouter);
+    this.app.use('/cool', deviceRouter);
   }
 }
 export default new App().app;

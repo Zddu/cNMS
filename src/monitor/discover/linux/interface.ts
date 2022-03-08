@@ -2,7 +2,7 @@ import { INTER_TYPES } from './typings';
 import { DeviceType } from './../../types';
 import { snmpNext, snmpTable, snmpTableColumns } from '../../../monitor/utils/snmp-utils';
 import { isObj, objBuffer2String, strSplice } from '../../../common';
-import { connect } from '../../../database';
+import { Pool } from 'mysql2/promise';
 const ifTable = '1.3.6.1.2.1.2.2';
 const ipTable = '1.3.6.1.2.1.4.20';
 const ifPhysicsOids = [
@@ -15,7 +15,7 @@ const ifPhysicsOids = [
   '1.3.6.1.2.1.2.2.1.7', // ifAdminStatus
 ];
 
-export default async function getInterface(device: DeviceType) {
+export default async function getInterface(device: DeviceType, conn: Pool) {
   try {
     const physicsInterfaces: any[] = [];
     const if_table = await snmpTableColumns(device, ifTable, [1, 2, 3, 4, 5, 6, 7], 10);
@@ -43,13 +43,15 @@ export default async function getInterface(device: DeviceType) {
     console.log(`${device.hostname} 接口信息`, physicsInterfaces);
 
     if (physicsInterfaces.length > 0) {
-      const conn = await connect();
       await conn.query('delete from cool_physics_inter where device_id = ? ', [device.device_id]);
       physicsInterfaces.forEach(async item => {
         await conn.query('insert into cool_physics_inter set ?', [item]);
       });
     }
+
+    // (await conn.getConnection()).release();
   } catch (error) {
+    // (await conn.getConnection()).release();
     console.log(error);
   }
 }

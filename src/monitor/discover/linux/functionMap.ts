@@ -1,3 +1,4 @@
+import { Pool } from 'mysql2/promise';
 import { DeviceType } from '../../types';
 import { getCPU } from './cpu';
 import getDisk from './disk';
@@ -7,10 +8,10 @@ import getNetworkFlow from './network-flow';
 import { getPhysics } from './physics';
 
 export const functionMap = {
-  cpu: (device: DeviceType) => getCPU(device),
-  mem: (device: DeviceType) => getMem(device),
-  disk: (device: DeviceType) => getDisk(device),
-  interface: (device: DeviceType) => getInterface(device),
-  flow: (device: DeviceType) => getNetworkFlow(device),
-  physics: (device: DeviceType) => getPhysics(device),
+  cpu: (device: DeviceType, conn: Pool) => getCPU(device, conn),
+  mem: (device: DeviceType, conn: Pool) => getMem(device, conn),
+  disk: (device: DeviceType, conn: Pool) => getDisk(device, conn),
+  interface: (device: DeviceType, conn: Pool) => getInterface(device, conn),
+  flow: (device: DeviceType, conn: Pool) => getNetworkFlow(device, conn),
+  physics: (device: DeviceType, conn: Pool) => getPhysics(device, conn),
 };

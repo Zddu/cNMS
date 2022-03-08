@@ -1,15 +1,15 @@
 import { DeviceType } from '../../types';
 import { bytesToReadable, isNumber, isObj, objBuffer2String } from '../../../common';
 import { snmpNext, snmpTable } from '../../utils/snmp-utils';
-import { connect } from '../../../database';
 import { getDiskTable } from './disk';
+import { Pool } from 'mysql2/promise';
 
 const hrDeviceTable = '1.3.6.1.2.1.25.3.2'; // hrDeviceTable
 const memTotalReal = [
   '1.3.6.1.4.1.2021.4.5', // memTotalReal
 ];
 const ifNumber = ['1.3.6.1.2.1.2.1'];
-export async function getPhysics(device: DeviceType) {
+export async function getPhysics(device: DeviceType, conn: Pool) {
   const physicsModel: any = {
     device_id: device.device_id,
     cpu_number: 0,
@@ -48,10 +48,12 @@ export async function getPhysics(device: DeviceType) {
 
     physicsModel.inter_model = interModel;
     console.log(`${device.hostname} physicsModel`, physicsModel);
-    const conn = await connect();
     await conn.query('delete from cool_physics where device_id = ?', [device.device_id]);
     await conn.query('insert into cool_physics set ?', [physicsModel]);
+
+    // (await conn.getConnection()).release();
   } catch (error) {
+    // (await conn.getConnection()).release();
     console.log(`${device.hostname} get physics error`, error);
   }
 }

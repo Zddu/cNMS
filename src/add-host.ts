@@ -1,5 +1,5 @@
 const md5 = require('md5');
-import GlobalError from './gloableError';
+import GlobalIntercept from './globalIntercept';
 import ErrorCode from './consts';
 import { connect } from './database';
 import { DeviceType } from './monitor/types';
@@ -29,7 +29,7 @@ export const addHost = async (device: DeviceType, deviceConfig?: string) => {
     // console.log(error);
   }
   if (isExist[0].length > 0) {
-    throw new GlobalError(ErrorCode.EXIST, '该主机已存在');
+    throw new Error('主机已存在');
   }
   try {
     // 不存在，获取sysDescr，判断主机类型

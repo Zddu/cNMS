@@ -1,11 +1,11 @@
 import { DeviceType } from './../../types';
 import { snmpTable } from '../../../monitor/utils/snmp-utils';
 import { bytesToReadable, isObj, objBuffer2String } from '../../../common';
-import { connect } from '../../../database';
 import { CoolDiskProps } from './typings';
+import { Pool } from 'mysql2/promise';
 const hrStorageTable = '1.3.6.1.2.1.25.2.3'; // hrStorageTable
 
-export default async function getDisk(device: DeviceType) {
+export default async function getDisk(device: DeviceType, conn: Pool) {
   try {
     const hr_storage_table = await snmpTable(device, hrStorageTable, 100);
     const storageTable = objBuffer2String(hr_storage_table);
@@ -29,8 +29,6 @@ export default async function getDisk(device: DeviceType) {
       });
     }
     if (diskTable.length > 0) {
-      const conn = await connect();
-
       diskTable.forEach(async item => {
         const isExits = (await conn.query('select disk_path from cool_disk where disk_path = ? and device_id = ?', [item.disk_path, item.device_id]))[0][0];
 
@@ -49,9 +47,12 @@ export default async function getDisk(device: DeviceType) {
           await conn.query('insert into cool_disk set ?', [item]);
         }
       });
+
+      // (await conn.getConnection()).release();
     }
   } catch (error) {
     console.log('get disk error');
+    // (await conn.getConnection()).release();
   }
 }
 

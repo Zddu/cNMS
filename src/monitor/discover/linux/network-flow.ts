@@ -1,7 +1,7 @@
 import { snmpTableColumns } from '../../../monitor/utils/snmp-utils';
 import { DeviceType } from '../../../monitor/types';
 import { bitsToReadable, formatFloat, isObj, objBuffer2String } from '../../../common';
-import { connect } from '../../../database';
+import { Pool } from 'mysql2/promise';
 
 const TIME = 60 * 1000 * 1;
 const ifXTableOid = '1.3.6.1.2.1.31.1.1';
@@ -21,7 +21,7 @@ const ifXTableOid = '1.3.6.1.2.1.31.1.1';
  * Out流量 = ((ifHCOutOctets2 - ifHCOutOctets1) * 8) / ((time2 - time1) * 1024 * 1024) Mbits / s
  * @param device
  */
-export default async function getNetworkFlow(device: DeviceType) {
+export default async function getNetworkFlow(device: DeviceType, conn: Pool) {
   const ifOtherData1 = await interOtherData(device);
 
   try {
@@ -73,13 +73,14 @@ export default async function getNetworkFlow(device: DeviceType) {
       });
 
       console.log(`${device.hostname}`, interFlowTable);
-      const conn = await connect();
       interFlowTable.forEach(async v => {
         await conn.query('insert into cool_network_flow set ?', [v]);
       });
     }, TIME);
+    // (await conn.getConnection()).release();
   } catch (error) {
     console.log('get net flow error', error);
+    // (await conn.getConnection()).release();
   }
 }
 

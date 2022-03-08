@@ -2,6 +2,7 @@ import { DeviceType } from './../../types';
 import { snmpNext } from '../../../monitor/utils/snmp-utils';
 import { connect } from '../../../database';
 import { formatFloat, isNumber } from '../../../common';
+import { Pool } from 'mysql2/promise';
 
 const memTotalReal = [
   '1.3.6.1.4.1.2021.4.5', // memTotalReal
@@ -11,7 +12,7 @@ const memTotalReal = [
   '1.3.6.1.4.1.2021.4.15', // memCached
 ];
 
-export default async function getMem(device: DeviceType) {
+export default async function getMem(device: DeviceType, conn: Pool) {
   try {
     const hr_memory = await snmpNext(device, memTotalReal);
     let memUsage = 0;
@@ -33,10 +34,11 @@ export default async function getMem(device: DeviceType) {
         mem_usage: formatFloat(memUsage, 2),
         last_polled: new Date(),
       };
-      const conn = await connect();
       await conn.query('insert into cool_mem_rate set ?', [memModel]);
+      // (await conn.getConnection()).release();
     }
   } catch (error) {
     console.log(`${device.hostname} get mem error`);
+    // (await conn.getConnection()).release();
   }
 }

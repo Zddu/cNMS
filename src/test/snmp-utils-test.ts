@@ -3,7 +3,7 @@ import { pollLinux } from '../monitor/discover/linux/poll';
 
 export const jRun = async () => {
   addHost({
-    ip: '81.70.253.123',
+    ip: '82.157.237.245',
     port: 161,
     community: 'public',
     snmpver: 'v2c',

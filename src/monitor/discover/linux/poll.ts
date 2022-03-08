@@ -4,6 +4,7 @@ import { connect } from '../../../database';
 import defaultConfig from '../../../default.config';
 import { functionMap } from './functionMap';
 import { ConfigProps } from './typings';
+import { Pool } from 'mysql2/promise';
 
 let scheduleQueue: { [key: string]: any }[] = [];
 const queryDevicesSQL = 'SELECT d.*, c.device_config FROM cool_devices AS d LEFT JOIN cool_device_config AS c ON d.device_id = c.device_id and d.os = "Linux"';
@@ -28,14 +29,14 @@ export async function pollLinux() {
       });
       scheduleQueue = [];
       console.log('clear scheduleQueue restart poll data');
-      deviceConfigs.forEach(d => pollData(d));
+      deviceConfigs.forEach(d => pollData(d, conn));
     }
   });
 
-  deviceConfigs.forEach(d => pollData(d));
+  deviceConfigs.forEach(d => pollData(d, conn));
 }
 
-function pollData(device: DeviceType & ConfigProps) {
+function pollData(device: DeviceType & ConfigProps, conn: Pool) {
   try {
     const config = JSON.parse(device.device_config) as typeof defaultConfig;
     if (config.poll.enabled) {
@@ -43,7 +44,7 @@ function pollData(device: DeviceType & ConfigProps) {
         if (config.poll.poll_item[k].enabled) {
           const cronTask = cron.schedule(config.poll.poll_item[k].poll_cron, async () => {
             console.log(`开始轮询${device.os}-${device.hostname}-${k}的数据-轮询周期${config.poll.poll_item[k].poll_cron}`);
-            functionMap[k](device);
+            functionMap[k](device, conn);
           });
           scheduleQueue.push({ [device.device_id + k]: cronTask });
         }
@@ -54,7 +55,7 @@ function pollData(device: DeviceType & ConfigProps) {
   }
 }
 
-export function modifyConfigResetPoll(deviceConfig: DeviceType & ConfigProps) {
+export function modifyConfigResetPoll(deviceConfig: DeviceType & ConfigProps, conn: Pool) {
   scheduleQueue.splice(
     scheduleQueue.findIndex(task => {
       if (Object.keys(task)[0] === deviceConfig.device_id) {
@@ -66,5 +67,5 @@ export function modifyConfigResetPoll(deviceConfig: DeviceType & ConfigProps) {
     1
   );
 
-  pollData(deviceConfig);
+  pollData(deviceConfig, conn);
 }
