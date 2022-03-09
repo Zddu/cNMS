@@ -1,15 +1,4 @@
 export default {
-  discover: {
-    snmp_version: 'v2c',
-    snmp_community_list: ['public'],
-    mode: {
-      arp: true,
-      ospf: false,
-      lldp: false,
-      ip_segment: [],
-      router: false,
-    },
-  },
   poll: {
     enabled: true,
     poll_item: {
@@ -32,10 +21,21 @@ export default {
       flow: {
         enabled: true,
         poll_cron: '*/1 * * * *', // 1分钟
+        unit: {
+          value: 'KB',
+          list: ['b', 'B', 'Kb', 'KB', 'Mb', 'MB', 'Gb', 'GB'], // 比特，字符，千比特，千字符，兆比特，兆字符，吉比特，吉字符
+        },
+        decimal: {
+          value: 2,
+        },
+        average_time: {
+          value: 60, // 单位秒
+          time_list: [1, 3, 5], // 单位分钟
+        },
       },
       physics: {
         enabled: false,
-        poll_corn: '* * 0 * * 0', // 每周日 0时
+        poll_cron: '* * 0 * * 0', // 每周日 0时
       },
     },
   },

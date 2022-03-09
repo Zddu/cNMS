@@ -9,5 +9,12 @@ export const jRun = async () => {
     snmpver: 'v2c',
     last_polled: new Date(),
   });
+  addHost({
+    ip: '81.70.253.123',
+    port: 161,
+    community: 'public',
+    snmpver: 'v2c',
+    last_polled: new Date(),
+  });
   pollLinux();
 };

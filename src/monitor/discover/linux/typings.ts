@@ -1,3 +1,4 @@
+import defaultConfig from '../../../default.config';
 export interface CoolCpuRateProps {
   cpu_rate: number;
   last_polled: Date;
@@ -17,6 +18,8 @@ export interface ConfigProps {
   device_id: string;
   device_config: string;
 }
+
+export type DeviceConfigProps = typeof defaultConfig;
 
 export const INTER_TYPES = {
   '1': 'OTHER',

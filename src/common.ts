@@ -76,16 +76,18 @@ export function bytesToReadable(bytes: number, n = 2) {
   }
 }
 
-export function bitsToReadable(bits: number, n = 2) {
-  const Mbits = bits / (1024 * 1024);
-  const Kbits = bits / 1024;
-  if (Mbits > 0.1) {
-    return formatFloat(Mbits, n) + ' Mb/s';
-  }
-  if (Kbits > 0.1) {
-    return formatFloat(Kbits, n) + ' Kb/s';
-  }
-  return formatFloat(bits, n) + ' b/s';
+export function bitsToReadable(bits: number, n: number, unit: string) {
+  const UNIT_MAP = {
+    b: bits,
+    B: bits / 8,
+    Kb: bits / 1024,
+    KB: bits / 8 / 1024,
+    Mb: bits / (1024 * 1024),
+    MB: bits / 8 / (1024 * 1024),
+    Gb: bits / (1024 * 1024 * 1024),
+    GB: bits / 8 / (1024 * 1024 * 1024),
+  };
+  return formatFloat(UNIT_MAP[unit], n);
 }
 
 export function formatFloat(value: number, n: number) {

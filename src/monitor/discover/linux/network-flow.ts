@@ -2,9 +2,8 @@ import { snmpTableColumns } from '../../../monitor/utils/snmp-utils';
 import { DeviceType } from '../../../monitor/types';
 import { bitsToReadable, formatFloat, isObj, objBuffer2String } from '../../../common';
 import { Pool } from 'mysql2/promise';
+import { ConfigProps, DeviceConfigProps } from './typings';
 
-const TIME = 60 * 1000 * 1; // 单位 ms
-const deltaTime = 60; // 单位 s
 const ifXTableOid = '1.3.6.1.2.1.31.1.1';
 
 /**
@@ -21,12 +20,19 @@ const ifXTableOid = '1.3.6.1.2.1.31.1.1';
  * In流量 = ((ifHCInOctets2 - ifHCInOctets1) * 8) / ((time2 - time1) * 1024 * 1024) Mbits / s
  * Out流量 = ((ifHCOutOctets2 - ifHCOutOctets1) * 8) / ((time2 - time1) * 1024 * 1024) Mbits / s
  * @param device
+ * @param conn
  */
 export default async function getNetworkFlow(device: DeviceType, conn: Pool) {
   const ifOtherData1 = await interOtherData(device);
-
+  const deviceConfig = (await conn.query('select * from cool_device_config where device_id = ?', [device.device_id]))[0] as ConfigProps[];
   try {
+    const config = JSON.parse(deviceConfig[0].device_config) as DeviceConfigProps;
+    const TIME = config.poll.poll_item.flow.average_time.value * 1000;
+    const deltaTime = config.poll.poll_item.flow.average_time.value;
+    const decimal = config.poll.poll_item.flow.decimal.value; //小数位数
+    const unit = config.poll.poll_item.flow.unit.value; //单位
     const net_flow1 = await snmpTableColumns(device, ifXTableOid, [1, 6, 10], 100);
+
     Object.keys(isObj(net_flow1) ? net_flow1 : {}).forEach(k => {
       net_flow1[k]['1'] = net_flow1[k]['1'].toString();
       let buff6 = Buffer.alloc(8);
@@ -52,7 +58,7 @@ export default async function getNetworkFlow(device: DeviceType, conn: Pool) {
         net_flow2[k]['10'] = buff10.readBigInt64BE(0).toString();
         const notNaN = !isNaN(Number(net_flow2[k]['6'])) && !isNaN(Number(net_flow1[k]['6'])) && !isNaN(Number(net_flow2[k]['10'])) && !isNaN(Number(net_flow1[k]['10']));
         const inFlow = formatFloat(((Number(net_flow2[k]['6']) - Number(net_flow1[k]['6'])) * 8) / deltaTime, 1);
-        const outFlow = formatFloat(((Number(net_flow2[k]['6']) - Number(net_flow1[k]['6'])) * 8) / deltaTime, 1);
+        const outFlow = formatFloat(((Number(net_flow2[k]['10']) - Number(net_flow1[k]['10'])) * 8) / deltaTime, 1);
 
         if (Number(inFlow) > 1 && Number(outFlow) > 1) {
           const ifTime1 = ifOtherData1.find(v => v.physics_if_name === net_flow2[k]['1']);
@@ -60,8 +66,8 @@ export default async function getNetworkFlow(device: DeviceType, conn: Pool) {
           const interFlow = {
             device_id: device.device_id,
             physics_if_name: net_flow2[k]['1'],
-            inflow_rate: notNaN ? bitsToReadable(((Number(net_flow2[k]['6']) - Number(net_flow1[k]['6'])) * 8) / deltaTime) : null,
-            outflow_rate: notNaN ? bitsToReadable(((Number(net_flow2[k]['10']) - Number(net_flow1[k]['10'])) * 8) / deltaTime) : null,
+            inflow_rate: notNaN ? bitsToReadable(((Number(net_flow2[k]['6']) - Number(net_flow1[k]['6'])) * 8) / deltaTime, decimal, unit) : null,
+            outflow_rate: notNaN ? bitsToReadable(((Number(net_flow2[k]['10']) - Number(net_flow1[k]['10'])) * 8) / deltaTime, decimal, unit) : null,
             in_discards_rate: (ifTime2.in_discards_pkts - ifTime1.in_discards_pkts) / deltaTime,
             out_discards_rate: (ifTime2.out_discards_pkts - ifTime1.out_discards_pkts) / deltaTime,
             in_error_rate: (ifTime2.in_error_pkts - ifTime1.in_error_pkts) / deltaTime,
@@ -120,5 +126,7 @@ function checkIfStatus(ifOperStatus: number, ifAdminStatus: number) {
     return '停机';
   } else if (ifOperStatus === 3 && ifAdminStatus === 3) {
     return '测试';
+  } else {
+    return '未知';
   }
 }
