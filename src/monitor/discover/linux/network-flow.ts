@@ -3,7 +3,8 @@ import { DeviceType } from '../../../monitor/types';
 import { bitsToReadable, formatFloat, isObj, objBuffer2String } from '../../../common';
 import { Pool } from 'mysql2/promise';
 
-const TIME = 60 * 1000 * 1;
+const TIME = 60 * 1000 * 1; // 单位 ms
+const deltaTime = 60; // 单位 s
 const ifXTableOid = '1.3.6.1.2.1.31.1.1';
 
 /**
@@ -50,8 +51,8 @@ export default async function getNetworkFlow(device: DeviceType, conn: Pool) {
         net_flow2[k]['6'] = buff6.readBigInt64BE(0).toString();
         net_flow2[k]['10'] = buff10.readBigInt64BE(0).toString();
         const notNaN = !isNaN(Number(net_flow2[k]['6'])) && !isNaN(Number(net_flow1[k]['6'])) && !isNaN(Number(net_flow2[k]['10'])) && !isNaN(Number(net_flow1[k]['10']));
-        const inFlow = formatFloat(((Number(net_flow2[k]['6']) - Number(net_flow1[k]['6'])) * 8) / TIME, 1);
-        const outFlow = formatFloat(((Number(net_flow2[k]['6']) - Number(net_flow1[k]['6'])) * 8) / TIME, 1);
+        const inFlow = formatFloat(((Number(net_flow2[k]['6']) - Number(net_flow1[k]['6'])) * 8) / deltaTime, 1);
+        const outFlow = formatFloat(((Number(net_flow2[k]['6']) - Number(net_flow1[k]['6'])) * 8) / deltaTime, 1);
 
         if (Number(inFlow) > 1 && Number(outFlow) > 1) {
           const ifTime1 = ifOtherData1.find(v => v.physics_if_name === net_flow2[k]['1']);
@@ -59,12 +60,12 @@ export default async function getNetworkFlow(device: DeviceType, conn: Pool) {
           const interFlow = {
             device_id: device.device_id,
             physics_if_name: net_flow2[k]['1'],
-            inflow_rate: notNaN ? bitsToReadable(((Number(net_flow2[k]['6']) - Number(net_flow1[k]['6'])) * 8) / TIME) : null,
-            outflow_rate: notNaN ? bitsToReadable(((Number(net_flow2[k]['10']) - Number(net_flow1[k]['10'])) * 8) / TIME) : null,
-            in_discards_rate: (ifTime2.in_discards_pkts - ifTime1.in_discards_pkts) / TIME,
-            out_discards_rate: (ifTime2.out_discards_pkts - ifTime1.out_discards_pkts) / TIME,
-            in_error_rate: (ifTime2.in_error_pkts - ifTime1.in_error_pkts) / TIME,
-            out_error_rate: (ifTime2.out_error_pkts - ifTime1.out_error_pkts) / TIME,
+            inflow_rate: notNaN ? bitsToReadable(((Number(net_flow2[k]['6']) - Number(net_flow1[k]['6'])) * 8) / deltaTime) : null,
+            outflow_rate: notNaN ? bitsToReadable(((Number(net_flow2[k]['10']) - Number(net_flow1[k]['10'])) * 8) / deltaTime) : null,
+            in_discards_rate: (ifTime2.in_discards_pkts - ifTime1.in_discards_pkts) / deltaTime,
+            out_discards_rate: (ifTime2.out_discards_pkts - ifTime1.out_discards_pkts) / deltaTime,
+            in_error_rate: (ifTime2.in_error_pkts - ifTime1.in_error_pkts) / deltaTime,
+            out_error_rate: (ifTime2.out_error_pkts - ifTime1.out_error_pkts) / deltaTime,
             if_status: ifTime2.if_status,
             last_polled: new Date(),
           };
