@@ -66,7 +66,7 @@ export interface DeviceType extends SnmpOptionsType {
   /**
    * 设备别名
    */
-  aliasName?: string;
+  alias_name?: string;
   ssh_enabled?: number;
   snmpver?: string;
   hostname?: string;

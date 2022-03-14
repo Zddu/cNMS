@@ -1,4 +1,7 @@
+import { DeviceType } from './monitor/types';
 import { randomUUID } from 'crypto';
+import DeviceConfig from './default.config';
+
 export const timeticksTohour = (ticks: number) => {
   const seconds = ticks / 100;
   const hour = Math.floor(seconds / 3600);
@@ -112,4 +115,24 @@ export function strSplice(str: string, count: number, splitChar: string) {
   }
 
   return arr.join(splitChar);
+}
+
+export function mergeDeviceConfig(device: DeviceType) {
+  ['ip', 'snmpver', 'port', 'community'].forEach(k => {
+    !device[k] && (device[k] = DeviceConfig.device[k]);
+  });
+}
+
+export function dynamicQueryParams<T>(query: T) {
+  const sqlValues = Object.values(query);
+  let sqlText = '';
+  Object.keys(query || {}).forEach(k => {
+    sqlText += `${k} = ?,`;
+  });
+  sqlText = sqlText.replace(/,$/gi, '');
+
+  return {
+    sqlText,
+    sqlValues,
+  };
 }

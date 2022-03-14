@@ -47,4 +47,10 @@ export default {
     username: null,
     password: null,
   },
+  device: {
+    ip: '127.0.0.1',
+    snmpver: 'v2c',
+    port: '161',
+    community: 'public',
+  },
 };

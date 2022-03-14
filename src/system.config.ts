@@ -1,5 +1,5 @@
 export default {
-  os_list: ['Linux', 'Ruijie'],
+  os_list: ['Linux', 'Ruijie', 'Windows'],
   discover: {
     snmp_version: 'v2c',
     snmp_community_list: ['public'],

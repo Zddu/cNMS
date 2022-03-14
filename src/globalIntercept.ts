@@ -20,9 +20,9 @@ class GlobalIntercept {
     return this;
   }
 
-  public success(data: any) {
+  public success(data?: any) {
     this.code = ErrorCode.SUCCESS;
-    this.data = data;
+    this.data = data || {};
     return this;
   }
 

@@ -1,10 +1,8 @@
 const md5 = require('md5');
-import GlobalIntercept from './globalIntercept';
-import ErrorCode from './consts';
 import { connect } from './database';
 import { DeviceType } from './monitor/types';
 import { snmpNext } from './monitor/utils/snmp-utils';
-import { objBuffer2String, timeticksTohour } from './common';
+import { mergeDeviceConfig, objBuffer2String, timeticksTohour } from './common';
 import systemConfig from './system.config';
 import defaultConfig from './default.config';
 
@@ -21,12 +19,12 @@ const dot1dTpFdbEntryItem = ['1.3.6.1.2.1.17.4.3.1.1'];
 export const addHost = async (device: DeviceType, deviceConfig?: string) => {
   let isExist;
   let host: DeviceType;
-
+  mergeDeviceConfig(device);
   try {
     const conn = await connect();
     isExist = await conn.query('select device_id from cool_devices where ip = ?', [device.ip]);
   } catch (error) {
-    // console.log(error);
+    throw error;
   }
   if (isExist[0].length > 0) {
     throw new Error('主机已存在');
@@ -58,17 +56,17 @@ export const addHost = async (device: DeviceType, deviceConfig?: string) => {
       uptime: timeticksTohour(Number(strDesc[1].value)),
       os: systemConfig.os_list.find(v => strDesc[0].value.includes(v)), // todo 新增设备类型
       type: type,
+      last_polled: new Date(),
     };
-    console.log('host', host);
   } catch (error) {
     host = {
       ...device,
+      last_polled: new Date(),
     };
   }
   let device_config = deviceConfig;
   if (!deviceConfig) {
     device_config = JSON.stringify(defaultConfig);
-    console.log(device_config);
   }
 
   const config = {
@@ -83,13 +81,13 @@ export const addHost = async (device: DeviceType, deviceConfig?: string) => {
     const devices = (await conn.query('select device_id from cool_device_config where device_id = ?', [host.device_id]))[0] as DeviceType[];
 
     if (devices.length > 0) {
-      conn.query('update cool_device_config set device_config = ?, last_polled  = ? where device_id = ?', [config.device_config, config.last_polled, config.device_id]);
+      await conn.query('update cool_device_config set device_config = ?, last_polled  = ? where device_id = ?', [config.device_config, config.last_polled, config.device_id]);
     } else {
-      conn.query('insert into cool_device_config set ?', [config]);
+      await conn.query('insert into cool_device_config set ?', [config]);
     }
 
-    conn.query('insert into cool_devices set ?', [host]);
+    await conn.query('insert into cool_devices set ?', [host]);
   } catch (error) {
-    console.log(error);
+    throw error;
   }
 };
