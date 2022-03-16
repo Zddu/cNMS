@@ -12,7 +12,7 @@ export default {
       },
       disk: {
         enabled: true,
-        poll_cron: '* * * 15 * *', // 每月15日
+        poll_cron: '*/5 * * * *', // 5分钟
       },
       interface: {
         enabled: true,
@@ -34,8 +34,8 @@ export default {
         },
       },
       physics: {
-        enabled: false,
-        poll_cron: '* * 0 * * 0', // 每周日 0时
+        enabled: true,
+        poll_cron: '*/5 * * * *', // 每周日 0时
       },
     },
   },
