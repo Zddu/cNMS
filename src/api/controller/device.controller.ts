@@ -1,3 +1,4 @@
+const validator = require('validator');
 import { DeviceType } from './../../monitor/types';
 import { connect } from '../../database';
 import { Request, Response } from 'express';
@@ -8,7 +9,10 @@ import defaultConfig from '../../default.config';
 import { addHost } from '../../add-host';
 import { ConfigProps } from '../../monitor/discover/linux/typings';
 import { dynamicQueryParams } from '../../common';
-
+import config from '../../monitor/ssh/ssh-cofig';
+export type RequestHandle = Request & {
+  session: any;
+};
 export async function getAllDevice(req: Request, res: Response): Promise<Response | void> {
   try {
     const conn = await connect();
@@ -21,7 +25,6 @@ export async function getAllDevice(req: Request, res: Response): Promise<Respons
       .limit(Number(pageSize))
       .offset((Number(current) - 1) * Number(pageSize))
       .toParam();
-    console.log('sql', sql);
     const devices = (await conn.query(sql.text, sql.values))[0];
     res.json(new GlobalIntercept().success(devices));
     conn.end();
@@ -77,6 +80,48 @@ export async function getCpuData(req: Request, res: Response): Promise<Response 
     const { device_id } = req.query;
     const cpu = (await conn.query('select * from cool_cpu_rate  where device_id = ? order by last_polled DESC', [device_id]))[0];
     res.json(new GlobalIntercept().success(cpu[0]));
+    conn.end();
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
+  }
+}
+
+export async function getMemData(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { device_id } = req.query;
+    const mem = (await conn.query('select * from cool_mem_rate  where device_id = ? order by last_polled DESC', [device_id]))[0];
+    res.json(new GlobalIntercept().success(mem[0]));
+    conn.end();
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
+  }
+}
+
+export async function getSSHConfig(req: RequestHandle, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { device_id } = req.query;
+    const ssh = (await conn.query('select * from cool_ssh  where device_id = ? ', [device_id]))[0];
+    res.json(new GlobalIntercept().success(ssh[0]));
+    conn.end();
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
+  }
+}
+
+export async function addSSHConfig(req: RequestHandle, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { device_id, username, password, port } = req.body;
+    const ssh = (await conn.query('select * from cool_ssh  where device_id = ? ', [device_id]))[0];
+    console.log(ssh);
+    if (!Boolean(ssh[0])) {
+      await conn.query('insert into cool_ssh set ?', [{ device_id, username, password, port }]);
+    } else {
+      res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, 'SSH账户已存在'));
+    }
+    res.json(new GlobalIntercept().success());
     conn.end();
   } catch (error) {
     res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));

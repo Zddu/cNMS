@@ -16,5 +16,5 @@ export const jRun = async () => {
     snmpver: 'v2c',
     last_polled: new Date(),
   });
-  pollLinux();
+  // pollLinux();
 };

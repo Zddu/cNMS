@@ -1,3 +1,4 @@
+import expressWs from 'express-ws';
 import express from 'express';
 import { json, urlencoded } from 'body-parser';
 import cors from 'cors';
@@ -5,12 +6,14 @@ import morgan from 'morgan';
 import userRouter from './router/user.routes';
 import mibRouter from './router/mib.routes';
 import deviceRouter from './router/device.routes';
+import { uuid } from '../common';
 
 class App {
   public app: express.Application;
 
   constructor() {
     this.app = express();
+    expressWs(this.app);
     this.middleware();
     // 引入路由
     this.routes();
@@ -31,6 +34,7 @@ class App {
     this.app.use('/user', userRouter);
     this.app.use('/mib', mibRouter);
     this.app.use('/cool', deviceRouter);
+    this.app.use('/ws', deviceRouter);
   }
 }
 export default new App().app;
