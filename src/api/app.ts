@@ -6,7 +6,7 @@ import morgan from 'morgan';
 import userRouter from './router/user.routes';
 import mibRouter from './router/mib.routes';
 import deviceRouter from './router/device.routes';
-import { uuid } from '../common';
+import monitorRouter from './router/monitor.routes';
 
 class App {
   public app: express.Application;
@@ -34,6 +34,7 @@ class App {
     this.app.use('/user', userRouter);
     this.app.use('/mib', mibRouter);
     this.app.use('/cool', deviceRouter);
+    this.app.use('/monitor', monitorRouter);
     this.app.use('/ws', deviceRouter);
   }
 }

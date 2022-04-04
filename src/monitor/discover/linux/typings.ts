@@ -186,3 +186,26 @@ export const INTER_TYPES = {
   '65534': 'SWITCHSTACK.',
   '0': 'VIRTUAL',
 };
+
+export interface ProcessItemProps {
+  pid: number;
+  processName: string;
+  processPath: string;
+  runParameters: string;
+  runType: 'unknown' | 'operatingSystem' | 'deviceDriver' | 'application';
+  runStatus: 'running' | 'runnable' | 'notRunnable' | 'invalid';
+  last_polled: Date;
+}
+export const RunTypeMap = {
+  '1': 'unknown',
+  '2': 'operatingSystem',
+  '3': 'deviceDriver',
+  '4': 'application',
+};
+
+export const RunStatus = {
+  '1': 'running',
+  '2': 'runnable',
+  '3': 'notRunnable',
+  '4': 'invalid',
+};

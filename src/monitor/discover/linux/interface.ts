@@ -13,15 +13,15 @@ const ifPhysicsOids = [
   '1.3.6.1.2.1.2.2.1.5', // ifSpeed
   '1.3.6.1.2.1.2.2.1.6', // ifPhysAddress
   '1.3.6.1.2.1.2.2.1.7', // ifAdminStatus
+  '1.3.6.1.2.1.2.2.1.8', // ifOperStatus
 ];
 
-export default async function getInterface(device: DeviceType, conn: Pool) {
+export default async function getInterface(device: DeviceType, conn?: Pool) {
   try {
     const physicsInterfaces: any[] = [];
-    const if_table = await snmpTableColumns(device, ifTable, [1, 2, 3, 4, 5, 6, 7], 10);
+    const if_table = await snmpTableColumns(device, ifTable, [1, 2, 3, 4, 5, 6, 7, 8], 100);
     const ip_table = await snmpTable(device, ipTable, 10);
-    if_table['2']['6'] = strSplice(if_table['2']['6'].toString('hex'), 2, '-');
-    const interTable = objBuffer2String(if_table);
+    const interTable = objBuffer2String(if_table, ['6']);
 
     if (isObj(interTable)) {
       Object.keys(interTable).forEach(k => {
@@ -30,8 +30,9 @@ export default async function getInterface(device: DeviceType, conn: Pool) {
             device_id: device.device_id,
             physics_if_name: interTable[k]['2'],
             physics_if_type: INTER_TYPES[interTable[k]['3']],
-            physics_if_mac: interTable[k]['6'] === '' ? null : interTable[k]['6'],
+            physics_if_mac: interTable[k]['6'] === '' ? null : strSplice(interTable[k]['6'].toString('hex'), 2, '-'),
             physics_if_admin_status: interTable[k]['7'] === '' ? null : interTable[k]['7'],
+            physics_if_operation_status: interTable[k]['8'] === '' ? null : interTable[k]['8'],
             physics_if_ip_address: (Object.values(ip_table).find((v: any) => v['2'] === interTable[k]['1']) as any)['1'],
             physics_if_ip_mask: (Object.values(ip_table).find((v: any) => v['2'] === interTable[k]['1']) as any)['3'],
             last_polled: new Date(),
@@ -42,16 +43,14 @@ export default async function getInterface(device: DeviceType, conn: Pool) {
     }
     console.log(`${device.hostname} 接口信息`, physicsInterfaces);
 
-    if (physicsInterfaces.length > 0) {
+    if (conn && physicsInterfaces.length > 0) {
       await conn.query('delete from cool_physics_inter where device_id = ? ', [device.device_id]);
       physicsInterfaces.forEach(async item => {
         await conn.query('insert into cool_physics_inter set ?', [item]);
       });
     }
-
-    // (await conn.getConnection()).release();
+    return physicsInterfaces;
   } catch (error) {
-    // (await conn.getConnection()).release();
     console.log(error);
   }
 }

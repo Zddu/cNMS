@@ -33,13 +33,17 @@ export function timesInterval(times: number, ms: number, cb) {
   }, ms);
 }
 
-export function objBuffer2String(obj: object) {
+export function objBuffer2String(obj: object, except?: string[], codeMap?: Record<string, string>) {
   if (isObj(obj)) {
     Object.keys(obj).forEach(k => {
       if (isObj(obj[k])) {
         Object.keys(obj[k]).forEach(v => {
-          if (Buffer.isBuffer(obj[k][v])) {
-            obj[k][v] = obj[k][v].toString();
+          if (!except?.includes(v) && Buffer.isBuffer(obj[k][v])) {
+            if (codeMap?.[v]) {
+              obj[k][v] = obj[k][v].toString(codeMap?.[v]);
+            } else {
+              obj[k][v] = obj[k][v].toString();
+            }
           }
         });
       }

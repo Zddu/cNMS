@@ -1,5 +1,6 @@
 import { addHost } from '../add-host';
 import { pollLinux } from '../monitor/discover/linux/poll';
+import process from '../monitor/discover/linux';
 
 export const jRun = async () => {
   addHost({
@@ -9,12 +10,13 @@ export const jRun = async () => {
     snmpver: 'v2c',
     last_polled: new Date(),
   });
-  addHost({
-    ip: '81.70.253.123',
-    port: 161,
-    community: 'public',
-    snmpver: 'v2c',
-    last_polled: new Date(),
-  });
-  // pollLinux();
+  // addHost({
+  //   ip: '81.70.253.123',
+  //   port: 161,
+  //   community: 'public',
+  //   snmpver: 'v2c',
+  //   last_polled: new Date(),
+  // });
+
+  process();
 };

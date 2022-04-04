@@ -1,4 +1,3 @@
-const validator = require('validator');
 import { DeviceType } from './../../monitor/types';
 import { connect } from '../../database';
 import { Request, Response } from 'express';
@@ -9,10 +8,11 @@ import defaultConfig from '../../default.config';
 import { addHost } from '../../add-host';
 import { ConfigProps } from '../../monitor/discover/linux/typings';
 import { dynamicQueryParams } from '../../common';
-import config from '../../monitor/ssh/ssh-cofig';
-export type RequestHandle = Request & {
-  session: any;
-};
+import getProcess from '../../monitor/discover/linux/process';
+import getInterface from '../../monitor/discover/linux/interface';
+import getServices from '../../monitor/discover/linux/services';
+import getApplication from '../../monitor/discover/linux/application';
+
 export async function getAllDevice(req: Request, res: Response): Promise<Response | void> {
   try {
     const conn = await connect();
@@ -98,7 +98,7 @@ export async function getMemData(req: Request, res: Response): Promise<Response 
   }
 }
 
-export async function getSSHConfig(req: RequestHandle, res: Response): Promise<Response | void> {
+export async function getSSHConfig(req: Request, res: Response): Promise<Response | void> {
   try {
     const conn = await connect();
     const { device_id } = req.query;
@@ -110,7 +110,7 @@ export async function getSSHConfig(req: RequestHandle, res: Response): Promise<R
   }
 }
 
-export async function addSSHConfig(req: RequestHandle, res: Response): Promise<Response | void> {
+export async function addSSHConfig(req: Request, res: Response): Promise<Response | void> {
   try {
     const conn = await connect();
     const { device_id, username, password, port } = req.body;
@@ -123,6 +123,83 @@ export async function addSSHConfig(req: RequestHandle, res: Response): Promise<R
     }
     res.json(new GlobalIntercept().success());
     conn.end();
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
+  }
+}
+
+export async function getProcessData(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { device_id } = req.query;
+    const device = (await conn.query('select * from cool_devices  where device_id = ? ', [device_id]))[0];
+    const data = await getProcess(device[0]);
+    res.json(new GlobalIntercept().success(data));
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
+  }
+}
+
+export async function getDiskData(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { device_id } = req.query;
+    const disk = (await conn.query('select * from cool_disk  where device_id = ? ', [device_id]))[0];
+    res.json(new GlobalIntercept().success(disk));
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
+  }
+}
+
+export async function getAdapterData(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { device_id } = req.query;
+    const device = (await conn.query('select * from cool_devices  where device_id = ? ', [device_id]))[0];
+    const data = await getInterface(device[0]);
+    res.json(new GlobalIntercept().success(data));
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
+  }
+}
+
+export async function getServicesData(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { device_id } = req.query;
+    const device = (await conn.query('select * from cool_devices  where device_id = ? ', [device_id]))[0];
+    const data = await getServices(device[0]);
+    res.json(new GlobalIntercept().success(data));
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
+  }
+}
+
+export async function getNetflowData(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { device_id, adapter } = req.query;
+    let flows;
+    if (adapter) {
+      flows = (await conn.query('select * from cool_network_flow  where device_id = ? and physics_if_name = ? ', [device_id, adapter]))[0];
+    } else {
+      flows = (await conn.query('select * from cool_network_flow  where device_id = ? ', [device_id]))[0];
+    }
+
+    res.json(new GlobalIntercept().success(flows));
+    conn.end();
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
+  }
+}
+
+export async function getApplicationData(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { device_id } = req.query;
+    const device = (await conn.query('select * from cool_devices  where device_id = ? ', [device_id]))[0];
+    const data = await getApplication(device[0]);
+    res.json(new GlobalIntercept().success(data));
   } catch (error) {
     res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
   }
