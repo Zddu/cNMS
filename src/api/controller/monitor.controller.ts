@@ -1,7 +1,7 @@
 /*
  * @Author: zengyan.zdde@bytedance.com
  * @Date: 2022-04-06 10:14:07
- * @LastEditTime: 2022-04-06 21:08:05
+ * @LastEditTime: 2022-04-07 14:41:44
  * @LastEditors: zengyan.zdde@bytedance.com
  * @Description:
  * @FilePath: /cool-network-system/src/api/controller/monitor.controller.ts
@@ -64,6 +64,55 @@ export async function getContacts(req: Request, res: Response): Promise<Response
     res.json(new GlobalIntercept().success(devices));
     conn.end();
   } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));
+  }
+}
+
+export async function getGroups(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { current, pageSize, ...query }: any = req.query;
+    const sql = squel
+      .select()
+      .field('a.*')
+      .field('ac.contact_name')
+      .field('ac.contact_phone')
+      .field('ac.contact_dingtalk_token')
+      .field('ac.contact_email')
+      .field('ac.contact_wechat_token')
+      .from(squel.select().field('ag.*').field('cg.contact_id').from('cool_contacts_group', 'cg').from('cool_alarm_group', 'ag').where('cg.group_id = ag.group_id'), 'a')
+      .left_join('cool_alarm_contacts', 'ac', 'a.contact_id = ac.contact_id')
+      .order('create_time', true)
+      .having(dynamicQueryParams(query).sqlText, dynamicQueryParams(query).sqlValues)
+      .limit(Number(pageSize))
+      .offset((Number(current) - 1) * Number(pageSize))
+      .toParam();
+    console.log('sql', sql);
+    const groups = (await conn.query(sql.text, sql.values))[0] as any[];
+    let record = {};
+    const groupContacts: any[] = [];
+    groups.forEach(group => {
+      if (!record[group.group_id]) {
+        groupContacts.push({
+          group_id: group.group_id,
+          group_name: group.group_name,
+          group_description: group.group_description,
+          create_time: group.create_time,
+          group_contacts: [group],
+        });
+        record[group.group_id] = group.group_id;
+      } else {
+        groupContacts.forEach(item => {
+          if (item.group_id === record[item.group_id]) {
+            item.group_contacts.push(group);
+          }
+        });
+      }
+    });
+    res.json(new GlobalIntercept().success(groupContacts));
+    conn.end();
+  } catch (error) {
+    console.log('error', error);
     res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));
   }
 }

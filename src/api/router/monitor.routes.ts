@@ -6,7 +6,7 @@
  * @Description:
  * @FilePath: /cool-network-system/src/api/router/monitor.routes.ts
  */
-import { createMonitorItem, getMonitorIndexs, getMonitorList, createContacts, getContacts, createGroup } from '../controller/monitor.controller';
+import { createMonitorItem, getMonitorIndexs, getMonitorList, createContacts, getContacts, createGroup, getGroups } from '../controller/monitor.controller';
 import { Router } from 'express';
 
 const monitorRouter = Router();
@@ -14,6 +14,6 @@ const monitorRouter = Router();
 monitorRouter.route('/').post(createMonitorItem).get(getMonitorList);
 monitorRouter.route('/index').get(getMonitorIndexs);
 monitorRouter.route('/alarm/contact').post(createContacts).get(getContacts);
-monitorRouter.route('/alarm/group').post(createGroup);
+monitorRouter.route('/alarm/group').post(createGroup).get(getGroups);
 
 export default monitorRouter;
