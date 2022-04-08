@@ -1,11 +1,3 @@
-/*
- * @Author: zengyan.zdde@bytedance.com
- * @Date: 2022-04-06 10:14:07
- * @LastEditTime: 2022-04-07 14:41:44
- * @LastEditors: zengyan.zdde@bytedance.com
- * @Description:
- * @FilePath: /cool-network-system/src/api/controller/monitor.controller.ts
- */
 import ErrorCode from '../../consts';
 import { Request, Response } from 'express';
 import GlobalIntercept from '../../globalIntercept';
@@ -15,8 +7,18 @@ const squel = require('squel');
 
 export async function createMonitorItem(req: Request, res: Response): Promise<Response | void> {
   try {
-    res.json();
+    const conn = await connect();
+    const monitor = req.body;
+    const result = (await conn.query('select mission_name from cool_monitor where mission_name = ?', [monitor.mission_name]))[0] as any[];
+    if (result.length > 0) {
+      res.json(new GlobalIntercept().error(ErrorCode.EXIST, '该任务已存在'));
+      return;
+    }
+    await conn.query('insert into cool_monitor set ?', [{ ...monitor, create_time: new Date() }]);
+    res.json(new GlobalIntercept().success());
+    conn.end();
   } catch (error) {
+    console.log('error', error);
     res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));
   }
 }
@@ -28,7 +30,34 @@ export async function createMonitorItem(req: Request, res: Response): Promise<Re
  */
 export async function getMonitorList(req: Request, res: Response): Promise<Response | void> {
   try {
-    res.json();
+    const conn = await connect();
+    const { current, pageSize, ...query }: any = req.query;
+    const sql = squel
+      .select()
+      .from('cool_monitor')
+      .where(dynamicQueryParams(query).sqlText, dynamicQueryParams(query).sqlValues)
+      .order('create_time', true)
+      .limit(Number(pageSize))
+      .offset((Number(current) - 1) * Number(pageSize))
+      .toParam();
+    const monitors = (await conn.query(sql.text, sql.values))[0];
+    res.json(new GlobalIntercept().success(monitors));
+    conn.end();
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));
+  }
+}
+
+export async function deleteMonitorItem(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { mission_id } = req.body;
+    console.log('mission_id', mission_id);
+    if (mission_id) {
+      await conn.query('delete from cool_monitor where mission_id = ?', [mission_id]);
+    }
+    res.json(new GlobalIntercept().success());
+    conn.end();
   } catch (error) {
     res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));
   }
