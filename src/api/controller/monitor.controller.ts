@@ -3,17 +3,20 @@ import { Request, Response } from 'express';
 import GlobalIntercept from '../../globalIntercept';
 import { connect } from '../../database';
 import { dynamicQueryParams } from '../../common';
+import { alarmEntry } from '../../monitor/discover/linux/alarm';
+import { Monitor } from '../../api/interface/Monitor';
 const squel = require('squel');
 
 export async function createMonitorItem(req: Request, res: Response): Promise<Response | void> {
   try {
     const conn = await connect();
-    const monitor = req.body;
+    const monitor = req.body as Monitor;
     const result = (await conn.query('select mission_name from cool_monitor where mission_name = ?', [monitor.mission_name]))[0] as any[];
     if (result.length > 0) {
       res.json(new GlobalIntercept().error(ErrorCode.EXIST, '该任务已存在'));
       return;
     }
+    await alarmEntry(monitor);
     await conn.query('insert into cool_monitor set ?', [{ ...monitor, create_time: new Date() }]);
     res.json(new GlobalIntercept().success());
     conn.end();
