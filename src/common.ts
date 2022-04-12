@@ -140,3 +140,12 @@ export function dynamicQueryParams<T>(query: T) {
     sqlValues,
   };
 }
+
+export function parserHtml(tpl: string, data: any) {
+  var reg = /{{(.+?)}}/g;
+  var match;
+  while ((match = reg.exec(tpl))) {
+    tpl = tpl.replace(match[0], data[match[1]]);
+  }
+  return tpl;
+}
