@@ -1,0 +1,49 @@
+<style>
+  .container {
+    display: flex;
+    flex-direction: column;
+  }
+  .container-item {
+    display: flex;
+    justify-content: flex-start;
+    line-height: 22px;
+    margin-bottom: 12px;
+  }
+  .container-item-left {
+    margin-right: 12px;
+    font-size: 15px;
+    color: #1f1f1f;
+  }
+</style>
+
+<div class="container">
+  <h3>{{title}}告警</h3>
+  <div class="container-item">
+    <div class="container-item-left">监控项</div>
+    <div class="container-item-right">{{mission_name}}</div>
+  </div>
+  <div class="container-item">
+    <div class="container-item-left">主机IP</div>
+    <div class="container-item-right">{{ip}}</div>
+  </div>
+  <div class="container-item">
+    <div class="container-item-left">主机ID</div>
+    <div class="container-item-right">{{device_id}}</div>
+  </div>
+  <div class="container-item">
+    <div class="container-item-left">主机名称</div>
+    <div class="container-item-right">{{hostname}}</div>
+  </div>
+  <div class="container-item">
+    <div class="container-item-left">监控阈值</div>
+    <div class="container-item-right">{{monitor_threshold}}</div>
+  </div>
+  <div class="container-item">
+    <div class="container-item-left">告警阈值</div>
+    <div class="container-item-right">{{alarm_threshold}}</div>
+  </div>
+  <div class="container-item">
+    <div class="container-item-left">告警信息</div>
+    <div class="container-item-right">{{alarm_info}}</div>
+  </div>
+</div>
