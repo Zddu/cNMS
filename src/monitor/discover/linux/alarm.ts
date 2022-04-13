@@ -1,5 +1,5 @@
 import { DeviceType } from '../../../monitor/types';
-import { AlarmMonitor, Monitor, MonitorIndex } from '../../../api/interface/Monitor';
+import { AlarmMonitor, Contact, Monitor, MonitorIndex } from '../../../api/interface/Monitor';
 import { connect } from '../../../database';
 import { getCPU } from './cpu';
 import dayjs from 'dayjs';
@@ -34,6 +34,10 @@ const alarmFunctionMap: { [key: string]: (device_id: string, mission: Monitor) =
   //   monitor_out_errors: (device: DeviceType, conn: Pool) => getCPU(device, conn),
 };
 
+const alarmModeFunctionMap: { [key: string]: (params: AlarmParamsProps) => Promise<any> } = {
+  email: (params: AlarmParamsProps) => mailAlarm(params),
+};
+
 const IndexToTextMap = {
   monitor_cpu: 'CPU负载率',
 };
@@ -41,66 +45,144 @@ const IndexToTextMap = {
 async function alarmCPU(device_id: string, mission: Monitor) {
   const conn = await connect();
   const devices = (await conn.query('select * from cool_devices where device_id = ?', [device_id]))[0] as DeviceType[];
-  console.log('device', devices);
-  console.log('mission', mission);
   let triggerTimes = 0;
+  let sendInfoTime: Date;
+  console.log('mission', mission);
+  console.log('device', devices);
   cron.schedule(`*/${mission.monitor_frequency} * * * *`, async () => {
     const ut = await getCPU(devices[0], conn);
+
     if (mission.monitor_threshold && ut >= Number(mission.monitor_threshold)) {
       triggerTimes++;
     }
+
     if (triggerTimes === Number(mission.alarm_threshold)) {
+      let alarm: AlarmMonitor = {
+        mission_name: mission.mission_name,
+        monitor_host: device_id,
+        monitor_type: mission.monitor_type,
+        alarm_status: 1, // 1初始化 2巡检中 3异常
+        alarm_times: 1,
+        alarm_continued: 0,
+        alarm_inform_type: mission.alarm_mode,
+        alarm_inform_target: mission.alarm_group,
+        create_time: new Date(),
+        update_time: new Date(),
+      };
+
       try {
         triggerTimes = 0;
-        // 通知联系组
-        // 历史告警入库
+        const contactGroups: Contact[] = [];
         const alarms = (await conn.query('select * from cool_alarm where mission_name = ? and monitor_host = ?', [mission.mission_name, device_id]))[0] as AlarmMonitor[];
-        // if(hours)
-        const tpl = await fs.readFile('src/monitor/mail/template.html', 'utf8');
+        const modes = mission.alarm_mode ? (JSON.parse(mission.alarm_mode) as string[]) : [];
+        if (mission.alarm_group) {
+          const groupIds = JSON.parse(mission.alarm_group) as string[];
+          for (let i = 0; i < groupIds.length; i++) {
+            const contacts = (
+              await conn.query('select ac.* from cool_alarm_contacts ac left join  (SELECT contact_id FROM cool_contacts_group where group_id = ?) a on a.contact_id = ac.contact_id', [groupIds[i]])
+            )[0] as Contact[];
+            contactGroups.push(...contacts);
+          }
+        }
+
+        // 通知联系组
+        const alarmInfo = {
+          mission_name: mission.mission_name,
+          title: IndexToTextMap[mission.monitor_type as string],
+          ip: devices[0].ip,
+          device_id,
+          monitor_threshold: mission.monitor_threshold,
+          alarm_threshold: mission.alarm_threshold,
+          hostname: devices[0].hostname,
+          alarm_info: `${IndexToTextMap[mission.monitor_type as string]}超过监控阈值，当前监控值：${formatFloat(ut, 2)}, 累计时间0小时，累计次数：1， 请及时登录网站查看！`,
+          alarm_group: contactGroups,
+        };
+
+        if (mission.alarm_mode && !Boolean(alarms.length > 0)) {
+          console.log('first alarmInfo', alarmInfo);
+          sendInfoTime = new Date();
+
+          for (let i = 0; i < modes.length; i++) {
+            console.log('modes', modes[i]);
+            await alarmModeFunctionMap[modes[i]](alarmInfo);
+          }
+        }
 
         if (alarms.length > 0) {
-          const hours = dayjs(alarms[0].create_time).diff(new Date(), 'hour');
-          await conn.query('update cool_alarm set alarm_continued = ?', [hours]);
+          const hours = dayjs(new Date()).diff(alarms[0].create_time, 'minutes');
+          const condition = Number(dayjs(new Date()).diff(sendInfoTime, 'minutes')) >= (Number(mission.alarm_silent) || 10);
+
+          for (let i = 0; i < modes.length; i++) {
+            console.log('modes', modes[i]);
+            if (condition) {
+              await alarmModeFunctionMap[modes[i]]({
+                mission_name: mission.mission_name,
+                title: IndexToTextMap[mission.monitor_type as string],
+                ip: devices[0].ip,
+                device_id,
+                monitor_threshold: mission.monitor_threshold,
+                alarm_threshold: mission.alarm_threshold,
+                hostname: devices[0].hostname,
+                alarm_info: `${IndexToTextMap[mission.monitor_type as string]}超过监控阈值，当前监控值：${formatFloat(ut, 2)}, 累计时间${hours}小时，累计次数：${
+                  (alarms[0].alarm_times || 0) + 1
+                }， 请及时登录网站查看！`,
+                alarm_group: contactGroups,
+              });
+              sendInfoTime = new Date();
+            }
+          }
+
+          await conn.query('update cool_alarm set alarm_continued = ?, alarm_status = ? , update_time = ?, alarm_times = ?', [hours, 2, new Date(), (alarms[0].alarm_times || 0) + 1]);
+          console.log('hours', hours);
         } else {
-          const alarm: AlarmMonitor = {
-            mission_name: mission.mission_name,
-            monitor_host: device_id,
-            monitor_type: mission.monitor_type,
-            alarm_status: '告警中',
-            alarm_continued: 0,
-            alarm_inform_type: mission.alarm_mode,
-            alarm_inform_target: mission.alarm_group,
-            create_time: new Date(),
-          };
-
-          const parserStr = parserHtml(tpl, {
-            mission_name: mission.mission_name,
-            title: IndexToTextMap[mission.monitor_type as string],
-            ip: devices[0].ip,
-            device_id,
-            monitor_threshold: mission.monitor_threshold,
-            alarm_threshold: mission.alarm_threshold,
-            hostname: devices[0].hostname,
-            alarm_info: `${IndexToTextMap[mission.monitor_type as string]}超过监控阈值，当前监控值：${formatFloat(ut, 2)}, 累计时间${alarm.alarm_continued}小时，请及时登录http://cool.nsm/alarm查看！`,
-          });
-          console.log('parserStr', parserStr);
-          ['2315037388@qq.com'].forEach(async qq => {
-            await sendMail({
-              to: qq,
-              subject: `${IndexToTextMap[mission.monitor_type as string]}告警信息`,
-              html: parserStr,
-            });
-          });
-
           await conn.query('insert into cool_alarm set ?', [alarm]);
         }
       } catch (error) {
         console.log('error', error);
+        alarm = {
+          mission_name: mission.mission_name,
+          monitor_host: device_id,
+          monitor_type: mission.monitor_type,
+          alarm_status: 3,
+          alarm_continued: 0,
+          alarm_inform_type: mission.alarm_mode,
+          alarm_inform_target: mission.alarm_group,
+          create_time: new Date(),
+          update_time: new Date(),
+          error_info: (error as Error).message,
+        };
+        await conn.query('insert into cool_alarm set ?', [alarm]);
       }
     }
   });
 }
 
-// export async function mailAlarm(params:type) {
+export interface AlarmParamsProps {
+  hostname?: string;
+  alarm_info?: string;
+  alarm_threshold?: number;
+  mission_name?: string;
+  title?: string;
+  device_id?: string;
+  monitor_threshold?: number;
+  ip?: string;
+  alarm_group?: Contact[];
+}
 
-// }
+export async function mailAlarm(params: AlarmParamsProps) {
+  const tpl = await fs.readFile('src/monitor/mail/template.html', 'utf8');
+
+  const parserStr = parserHtml(tpl, params);
+  console.log('parserStr', parserStr);
+  if (params.alarm_group) {
+    params.alarm_group.forEach(async contact => {
+      await sendMail({
+        to: contact.contact_email as string,
+        subject: `${params.title}告警信息`,
+        html: parserStr,
+      });
+    });
+  } else {
+    throw '没有联系组信息';
+  }
+}

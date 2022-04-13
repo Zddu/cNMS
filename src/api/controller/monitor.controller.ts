@@ -40,8 +40,8 @@ export async function getMonitorList(req: Request, res: Response): Promise<Respo
       .from('cool_monitor')
       .where(dynamicQueryParams(query).sqlText, dynamicQueryParams(query).sqlValues)
       .order('create_time', true)
-      .limit(Number(pageSize))
-      .offset((Number(current) - 1) * Number(pageSize))
+      .limit(pageSize ? Number(pageSize) : null)
+      .offset(pageSize ? (Number(current) - 1) * Number(pageSize) : null)
       .toParam();
     const monitors = (await conn.query(sql.text, sql.values))[0];
     res.json(new GlobalIntercept().success(monitors));
@@ -89,8 +89,28 @@ export async function getContacts(req: Request, res: Response): Promise<Response
       .from('cool_alarm_contacts')
       .where(dynamicQueryParams(query).sqlText, dynamicQueryParams(query).sqlValues)
       .order('create_time', true)
-      .limit(Number(pageSize))
-      .offset((Number(current) - 1) * Number(pageSize))
+      .limit(pageSize ? Number(pageSize) : null)
+      .offset(pageSize ? (Number(current) - 1) * Number(pageSize) : null)
+      .toParam();
+    const devices = (await conn.query(sql.text, sql.values))[0];
+    res.json(new GlobalIntercept().success(devices));
+    conn.end();
+  } catch (error) {
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));
+  }
+}
+
+export async function getAlarms(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const { current, pageSize, ...query }: any = req.query;
+    const sql = squel
+      .select()
+      .from('cool_alarm')
+      .where(dynamicQueryParams(query).sqlText, dynamicQueryParams(query).sqlValues)
+      .order('create_time', true)
+      .limit(pageSize ? Number(pageSize) : null)
+      .offset(pageSize ? (Number(current) - 1) * Number(pageSize) : null)
       .toParam();
     const devices = (await conn.query(sql.text, sql.values))[0];
     res.json(new GlobalIntercept().success(devices));
@@ -116,10 +136,9 @@ export async function getGroups(req: Request, res: Response): Promise<Response |
       .left_join('cool_alarm_contacts', 'ac', 'a.contact_id = ac.contact_id')
       .order('create_time', true)
       .having(dynamicQueryParams(query).sqlText, dynamicQueryParams(query).sqlValues)
-      .limit(Number(pageSize))
-      .offset((Number(current) - 1) * Number(pageSize))
+      .limit(pageSize ? Number(pageSize) : null)
+      .offset(pageSize ? (Number(current) - 1) * Number(pageSize) : null)
       .toParam();
-    console.log('sql', sql);
     const groups = (await conn.query(sql.text, sql.values))[0] as any[];
     let record = {};
     const groupContacts: any[] = [];

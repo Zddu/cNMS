@@ -26,9 +26,22 @@ export interface AlarmMonitor {
   mission_name?: string;
   monitor_type?: string;
   monitor_host?: string;
-  alarm_status?: string;
+  alarm_status?: number;
+  alarm_times?: number;
   alarm_continued?: number;
   alarm_inform_type?: string;
   alarm_inform_target?: string;
+  error_info?: string;
+  create_time?: Date;
+  update_time?: Date;
+}
+
+export interface Contact {
+  contact_id?: number;
+  contact_name?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  contact_wechat_token?: string;
+  contact_dingtalk_token?: string;
   create_time?: Date;
 }
