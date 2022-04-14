@@ -6,6 +6,10 @@ import dayjs from 'dayjs';
 import { sendMail } from '../../../monitor/mail/mail-send';
 import fs from 'fs/promises';
 import { formatFloat, parserHtml } from '../../../common';
+import { Pool } from 'mysql2/promise';
+import getMem from './mem';
+import getNetworkFlow, { NetworkFlowProps } from './network-flow';
+import getInterface, { PhysicsInterfaceProps } from './interface';
 const cron = require('node-cron');
 
 export async function alarmEntry(mission: Monitor) {
@@ -20,8 +24,8 @@ export async function alarmEntry(mission: Monitor) {
 
 const alarmFunctionMap: { [key: string]: (device_id: string, mission: Monitor) => Promise<any> } = {
   monitor_cpu: (device_id: string, mission: Monitor) => alarmCPU(device_id, mission),
-  //   monitor_mem: (device: DeviceType, conn: Pool) => getCPU(device, conn),
-  //   monitor_flow: (device: DeviceType, conn: Pool) => getCPU(device, conn),
+  monitor_mem: (device_id: string, mission: Monitor) => alarmMem(device_id, mission),
+  monitor_flow: (device_id: string, mission: Monitor) => alarmFlow(device_id, mission),
   //   monitor_ping: (device: DeviceType, conn: Pool) => getCPU(device, conn),
   //   monitor_snmp: (device: DeviceType, conn: Pool) => getCPU(device, conn),
   //   monitor_disk_rate: (device: DeviceType, conn: Pool) => getCPU(device, conn),
@@ -39,10 +43,50 @@ const alarmModeFunctionMap: { [key: string]: (params: AlarmParamsProps) => Promi
 };
 
 const IndexToTextMap = {
-  monitor_cpu: 'CPU负载率',
+  monitor_cpu: 'CPU使用率',
+  monitor_mem: '内存使用率',
+  monitor_flow: '总带宽使用率',
+  monitor_disk_rate: '磁盘使用率',
+  monitor_ping: 'PING连通性',
+  monitor_snmp: 'SNMP连通性',
 };
 
+async function alarmFlow(device_id: string, mission: Monitor) {
+  const getTotalFlowRate = async (device: DeviceType, conn: Pool): Promise<number> => {
+    const data = await getNetworkFlow(device, conn);
+    let maxSpeed: number = 0;
+    const pInterface = (await conn.query('select * from cool_physics_inter where device_id = ?', [device.device_id]))[0] as PhysicsInterfaceProps[];
+    if (pInterface.length > 0) {
+      pInterface.forEach(item => {
+        if (item.physics_if_speed) {
+          maxSpeed = Math.max(maxSpeed, Number(item.physics_if_speed));
+        }
+      });
+    }
+    if (maxSpeed === 0) {
+      const inters = await getInterface(device, conn);
+      inters.forEach(item => {
+        if (item.physics_if_speed) {
+          maxSpeed = Math.max(maxSpeed, Number(item.physics_if_speed));
+        }
+      });
+    }
+    const flowRate = data.reduce((pre, curr, _index) => {
+      return pre + pre + (curr.inflow_rate || 0) + (curr.outflow_rate || 0);
+    }, 0);
+
+    return (flowRate * 100) / maxSpeed;
+  };
+  alarmNumericalBase(device_id, mission, getTotalFlowRate);
+}
+async function alarmMem(device_id: string, mission: Monitor) {
+  alarmNumericalBase(device_id, mission, getMem);
+}
 async function alarmCPU(device_id: string, mission: Monitor) {
+  alarmNumericalBase(device_id, mission, getCPU);
+}
+
+async function alarmNumericalBase(device_id: string, mission: Monitor, poll: (device: DeviceType, conn: Pool) => Promise<number>) {
   const conn = await connect();
   const devices = (await conn.query('select * from cool_devices where device_id = ?', [device_id]))[0] as DeviceType[];
   let triggerTimes = 0;
@@ -50,8 +94,7 @@ async function alarmCPU(device_id: string, mission: Monitor) {
   console.log('mission', mission);
   console.log('device', devices);
   cron.schedule(`*/${mission.monitor_frequency} * * * *`, async () => {
-    const ut = await getCPU(devices[0], conn);
-
+    const ut = await poll(devices[0], conn);
     if (mission.monitor_threshold && ut >= Number(mission.monitor_threshold)) {
       triggerTimes++;
     }
@@ -109,11 +152,10 @@ async function alarmCPU(device_id: string, mission: Monitor) {
         }
 
         if (alarms.length > 0) {
-          const hours = dayjs(new Date()).diff(alarms[0].create_time, 'minutes');
+          const minutes = dayjs(new Date()).diff(alarms[0].create_time, 'minutes');
           const condition = Number(dayjs(new Date()).diff(sendInfoTime, 'minutes')) >= (Number(mission.alarm_silent) || 10);
 
           for (let i = 0; i < modes.length; i++) {
-            console.log('modes', modes[i]);
             if (condition) {
               await alarmModeFunctionMap[modes[i]]({
                 mission_name: mission.mission_name,
@@ -123,7 +165,7 @@ async function alarmCPU(device_id: string, mission: Monitor) {
                 monitor_threshold: mission.monitor_threshold,
                 alarm_threshold: mission.alarm_threshold,
                 hostname: devices[0].hostname,
-                alarm_info: `${IndexToTextMap[mission.monitor_type as string]}超过监控阈值，当前监控值：${formatFloat(ut, 2)}, 累计时间${hours}小时，累计次数：${
+                alarm_info: `${IndexToTextMap[mission.monitor_type as string]}超过监控阈值，当前监控值：${formatFloat(ut, 2)}, 累计时间${formatFloat(minutes / 60, 2)}小时，累计次数：${
                   (alarms[0].alarm_times || 0) + 1
                 }， 请及时登录网站查看！`,
                 alarm_group: contactGroups,
@@ -132,8 +174,12 @@ async function alarmCPU(device_id: string, mission: Monitor) {
             }
           }
 
-          await conn.query('update cool_alarm set alarm_continued = ?, alarm_status = ? , update_time = ?, alarm_times = ?', [hours, 2, new Date(), (alarms[0].alarm_times || 0) + 1]);
-          console.log('hours', hours);
+          await conn.query('update cool_alarm set alarm_continued = ?, alarm_status = ? , update_time = ?, alarm_times = ?', [
+            formatFloat(minutes / 60, 2),
+            2,
+            new Date(),
+            (alarms[0].alarm_times || 0) + 1,
+          ]);
         } else {
           await conn.query('insert into cool_alarm set ?', [alarm]);
         }
