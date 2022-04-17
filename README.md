@@ -3,6 +3,12 @@
 - 2022-3-2 基本完成 linux 服务器数据检测
 - 2022-4-4 数据展示
 - 2022-4-14 监控告警流程打通
+- 监控中心
+ ![监控中心](https://gitee.com/zdde/cool-network-system/raw/master/src/assets/cool-20220417-01.png)
+ ![监控配置](https://gitee.com/zdde/cool-network-system/raw/master/src/assets/cool-20220417-02.png)
+- 告警历史
+ ![告警历史](https://gitee.com/zdde/cool-network-system/raw/master/src/assets/cool-20220417-03.png)
+ ![邮件告警](https://gitee.com/zdde/cool-network-system/raw/master/src/assets/cool-20220417-04.png)
 - 添加设备
   ![添加设备](https://gitee.com/zdde/cool-network-system/raw/master/src/assets/cool-20220404-01.png)
 - 设备配置
