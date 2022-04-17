@@ -1,4 +1,4 @@
 /node_modules
 /dist
 database.ts
-mail-config.ts
+alarm-config.ts

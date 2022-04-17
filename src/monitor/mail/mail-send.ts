@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-import mailConfig from '../../mail-config';
+import mailConfig from '../../alarm-config';
 
 interface MailSendParamsProps {
   to: string;

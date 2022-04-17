@@ -5,6 +5,8 @@ import { connect } from '../../database';
 import { dynamicQueryParams } from '../../common';
 import { alarmEntry } from '../../monitor/discover/linux/alarm';
 import { Monitor } from '../../api/interface/Monitor';
+import { validateToken } from '../../monitor/wechat/validate-token';
+import { textMessage } from '../../monitor/wechat/template';
 const squel = require('squel');
 
 export async function createMonitorItem(req: Request, res: Response): Promise<Response | void> {
@@ -217,6 +219,42 @@ export async function createGroup(req: Request, res: Response): Promise<Response
     console.log('result', result);
     console.log('group_contacts', group_contacts);
     res.json(new GlobalIntercept().success());
+  } catch (error) {
+    console.log(error);
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));
+  }
+}
+
+export async function validateWechat(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const data = await validateToken(req);
+    console.log('data', data)
+    res.send(data);
+  } catch (error) {
+    console.log(error);
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));
+  }
+}
+
+export async function handleMessage(req: Request, res: Response): Promise<Response | void> {
+  try {
+    let xml = req.body.xml;
+    let msgtype = xml.msgtype[0];
+    switch (msgtype) {
+      case "text":
+        // 封装要回复的消息参数
+        let message = {
+          FromUserName: xml.fromusername[0],
+          ToUserName: xml.tousername[0],
+          reply: "你好呀，我是通过代码回复你的",
+        };
+        res.send(textMessage(message));
+        break;
+
+      default:
+        res.send(""); // 不是文本消息是默认响应一个空
+        break;
+    }
   } catch (error) {
     console.log(error);
     res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));
