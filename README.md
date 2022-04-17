@@ -65,3 +65,33 @@ export async function connect(): Promise<Pool> {
   return connection;
 }
 ```
+- 告警配置
+- 在 src 目录下创建 alarm-config.ts 文件
+```javascript
+export default {
+  // 邮箱
+  qq: {
+    host: 'smtp.qq.com',
+    port: 465,
+    auth: {
+      user: 'your email',
+      pass: 'your pass'
+    }
+  },
+  // 微信公众号
+  wechat: {
+    dev_token: 'token',
+    APPID: 'appid',
+    APPSECRET: 'secret'
+  }
+}
+```
+4.启动解释
+```javascript
+"build": "tsc", // 打包代码生成js，此时会生成dist文件夹，用于start命令
+"monitor": "nodemon --watch src/monitor -e ts --exec ts-node src/test/index.ts", 监听monitor文件夹用调试
+"test": "nodemon --watch src/test -e ts --exec ts-node src/test/index.ts", 执行测试文件
+"dev": "nodemon --watch src/api -e ts --exec ts-node src/api/server.ts", 启动http服务器，此时是作为web项目进行开发
+"start": "nodemon ./dist/server.js", 启动构建后的代码
+"prod": "npm run build && npm run start" build 和 start的快捷命令
+```
