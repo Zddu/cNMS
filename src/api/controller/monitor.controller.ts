@@ -1,12 +1,13 @@
 import ErrorCode from '../../consts';
 import { Request, Response } from 'express';
 import GlobalIntercept from '../../globalIntercept';
-import { connect } from '../../database';
-import { dynamicQueryParams } from '../../common';
+import { backup, connect } from '../../database';
+import { dynamicQueryParams, generateTopologyModel } from '../../common';
 import { alarmEntry } from '../../monitor/discover/linux/alarm';
 import { Monitor } from '../../api/interface/Monitor';
 import { validateToken } from '../../monitor/wechat/validate-token';
 import { textMessage } from '../../monitor/wechat/template';
+import { DeviceType } from 'monitor/types';
 const squel = require('squel');
 
 export async function createMonitorItem(req: Request, res: Response): Promise<Response | void> {
@@ -255,6 +256,19 @@ export async function handleMessage(req: Request, res: Response): Promise<Respon
         res.send(""); // 不是文本消息是默认响应一个空
         break;
     }
+  } catch (error) {
+    console.log(error);
+    res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));
+  }
+}
+
+export async function findTopology(req: Request, res: Response): Promise<Response | void> {
+  try {
+    const conn = await connect();
+    const connects = (await conn.query('select * from cool_devices'))[0] as DeviceType[];
+    const result = await generateTopologyModel(connects);
+    console.log('result', result)
+    res.json(new GlobalIntercept().success(result));
   } catch (error) {
     console.log(error);
     res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, '服务器错误'));

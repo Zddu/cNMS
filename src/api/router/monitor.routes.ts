@@ -1,4 +1,4 @@
-import { createMonitorItem, handleMessage, getMonitorIndexs, validateWechat, getMonitorList, createContacts, getContacts, createGroup, getGroups, deleteMonitorItem, getAlarms } from '../controller/monitor.controller';
+import { createMonitorItem, handleMessage, getMonitorIndexs, validateWechat, getMonitorList, createContacts, getContacts, createGroup, getGroups, deleteMonitorItem, getAlarms, findTopology } from '../controller/monitor.controller';
 import { Router } from 'express';
 import { setTonken, timingSetTonken } from '../../monitor/wechat/tonken-config';
 
@@ -16,5 +16,6 @@ monitorRouter.route('/alarm/contact').post(createContacts).get(getContacts);
 monitorRouter.route('/alarm/group').post(createGroup).get(getGroups);
 monitorRouter.route('/alarm/wechat').get(validateWechat).post(handleMessage);
 monitorRouter.route('/alarms').get(getAlarms);
+monitorRouter.route('/topology').get(findTopology);
 
 export default monitorRouter;
