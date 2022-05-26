@@ -18,5 +18,5 @@ export const jRun = async () => {
   //   last_polled: new Date(),
   // });
 
-  process();
+  pollLinux();
 };
