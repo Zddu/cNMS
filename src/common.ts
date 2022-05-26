@@ -172,9 +172,13 @@ export async function generateTopologyModel(devices: DeviceType[]) {
     })
   }
 
-  data.edges.push({
-    source: devices[0].device_id,
-    target: devices[1].device_id
-  })
+  if (devices.length >= 2) {
+    data.edges.push({
+      source: devices[0].device_id,
+      target: devices[1].device_id
+    })
+  }
+
+
   return data;
 }

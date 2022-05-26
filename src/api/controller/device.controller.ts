@@ -66,8 +66,9 @@ export async function getDeviceInfo(req: Request, res: Response): Promise<Respon
     const cpu = (await conn.query('select * from cool_cpu_rate where device_id = ?', [device_id]))[0];
     const mem = (await conn.query('select * from cool_mem_rate where device_id = ?', [device_id]))[0];
     const disk = (await conn.query('select * from cool_disk where device_id = ?', [device_id]))[0];
+    const device = (await conn.query('select * from cool_devices where device_id = ?', [device_id]))[0][0];
 
-    res.json(new GlobalIntercept().success({ physics, interface: inter, cpu, mem, disk }));
+    res.json(new GlobalIntercept().success({ physics, interface: inter, cpu, mem, disk, device }));
     conn.end();
   } catch (error) {
     res.json(new GlobalIntercept().error(ErrorCode.UNKNOWN_EXCEPTION, (error as Error).message));
