@@ -1,6 +1,9 @@
 import { DeviceType } from './monitor/types';
 import { randomUUID } from 'crypto';
 import DeviceConfig from './default.config';
+import { getCPU } from './monitor/discover/linux/cpu';
+import { connect } from './database';
+import getMem from './monitor/discover/linux/mem';
 
 export const timeticksTohour = (ticks: number) => {
   const seconds = ticks / 100;
@@ -33,13 +36,17 @@ export function timesInterval(times: number, ms: number, cb) {
   }, ms);
 }
 
-export function objBuffer2String(obj: object) {
+export function objBuffer2String(obj: object, except?: string[], codeMap?: Record<string, string>) {
   if (isObj(obj)) {
     Object.keys(obj).forEach(k => {
       if (isObj(obj[k])) {
         Object.keys(obj[k]).forEach(v => {
-          if (Buffer.isBuffer(obj[k][v])) {
-            obj[k][v] = obj[k][v].toString();
+          if (!except?.includes(v) && Buffer.isBuffer(obj[k][v])) {
+            if (codeMap?.[v]) {
+              obj[k][v] = obj[k][v].toString(codeMap?.[v]);
+            } else {
+              obj[k][v] = obj[k][v].toString();
+            }
           }
         });
       }
@@ -135,4 +142,43 @@ export function dynamicQueryParams<T>(query: T) {
     sqlText,
     sqlValues,
   };
+}
+
+export function parserHtml(tpl: string, data: any) {
+  var reg = /{{(.+?)}}/g;
+  var match;
+  while ((match = reg.exec(tpl))) {
+    tpl = tpl.replace(match[0], data[match[1]]);
+  }
+  return tpl;
+}
+
+export async function generateTopologyModel(devices: DeviceType[]) {
+  const conn = await connect()
+  const data: Record<string, any> = {
+    nodes: [],
+    edges: []
+  };
+  for (let i = 0; i < devices.length; i++) {
+    data.nodes.push({
+      id: devices[i].device_id,
+      label: devices[i].type,
+      ip: devices[i].ip,
+      data: {
+        cpu: (await conn.query('select cpu_rate from cool_cpu_rate where device_id = ? group by id desc', [devices[i].device_id]))[0][0],
+        mem: (await conn.query('select mem_usage from cool_mem_rate where device_id = ? group by id desc', [devices[i].device_id]))[0][0],
+        ...devices[i]
+      }
+    })
+  }
+
+  if (devices.length >= 2) {
+    data.edges.push({
+      source: devices[0].device_id,
+      target: devices[1].device_id
+    })
+  }
+
+
+  return data;
 }

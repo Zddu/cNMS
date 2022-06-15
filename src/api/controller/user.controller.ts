@@ -13,6 +13,7 @@ export async function getUsers(req: Request, res: Response): Promise<Response | 
   }
 }
 
+
 export async function createUser(req: Request, res: Response) {
   try {
     const newUser: User = req.body;

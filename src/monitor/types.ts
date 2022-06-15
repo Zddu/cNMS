@@ -110,5 +110,5 @@ export interface Session {
   /**
    * walk()方法获取MIB树中指定的OID之后所有OID的词法值。
    */
-  walk: (oid: string, maxRepetitions?: number, feedCallback?: (varbinds: VarbindsType) => void, doneCallback?: (error: Error) => void) => void;
+  walk: (oid: string, feedCallback?: (varbinds: VarbindsType[]) => void, doneCallback?: (error: Error) => void) => void;
 }

@@ -49,13 +49,23 @@ export const snmpNext = (device: DeviceType, oids: string[]) => {
   });
 };
 
-export const snmpWalk = (device: DeviceType, oid: string, maxRepetitions?: number, snmpConfig?: SnmpOptionsType) => {
-  return new Promise<VarbindsType>((resolve, reject) => {
+export const snmpWalk = (device: DeviceType, oid: string, snmpConfig?: SnmpOptionsType) => {
+  return new Promise<VarbindsType[]>((resolve, reject) => {
+    const result: VarbindsType[] = [];
     createSnmpSession(device, snmpConfig).walk(
       oid,
-      maxRepetitions,
       varbinds => {
-        resolve(varbinds);
+        if (varbinds) {
+          varbinds.forEach(item => {
+            if (item.oid.includes(oid)) {
+              result.push(item);
+            }
+            if (!item.oid.includes(oid)) {
+              resolve(result);
+              return true;
+            }
+          });
+        }
       },
       error => {
         reject(error);
