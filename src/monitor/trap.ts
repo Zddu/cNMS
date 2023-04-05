@@ -24,7 +24,7 @@ export const receiver = snmp.createReceiver(options, callback);
 
 async function hanldeTrap(notification: any) {
   const conn = await connect();
-  console.log(JSON.stringify(notification, null, 2));
+
   if (isObj(notification) && notification.pdu) {
     notification.pdu.varbinds.forEach(async v => {
       await conn.query('insert into cool_trap set ?', [{ v }])
